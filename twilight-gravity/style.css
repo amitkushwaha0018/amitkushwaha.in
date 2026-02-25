@@ -62,9 +62,23 @@ html {
     /* Firefox */
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
+/* Custom Gradient Scrollbar */
 html::-webkit-scrollbar {
-    display: none;
+    width: 10px;
+}
+
+html::-webkit-scrollbar-track {
+    background: var(--bg-color);
+}
+
+html::-webkit-scrollbar-thumb {
+    background: var(--gradient-primary);
+    border-radius: 10px;
+    border: 2px solid var(--bg-color);
+}
+
+html::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-secondary);
 }
 
 body {
@@ -348,6 +362,7 @@ img {
 .nav-links a:hover,
 .nav-links a.active {
     color: var(--text-primary);
+    text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
 }
 
 .nav-links a::after {
@@ -428,59 +443,111 @@ img {
     height: 3px;
     background-color: var(--text-primary);
     border-radius: 2px;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    transform-origin: left center;
+}
+
+/* Make the middle bar shorter for a professional asymmetrical look */
+.hamburger .bar:nth-child(2) {
+    width: 70%;
+}
+
+/* Expand the middle bar when hovering over the menu button */
+.hamburger:hover .bar:nth-child(2) {
+    width: 100%;
+    background-color: var(--accent-color);
+}
+
+.hamburger.active:hover .bar:nth-child(2) {
+    /* Don't show hover effect when it's already an X */
+    width: 0;
 }
 
 .hamburger.active .bar:nth-child(1) {
     transform: translateY(9px) rotate(45deg);
+    background-color: var(--accent-color);
 }
 
 .hamburger.active .bar:nth-child(2) {
     opacity: 0;
+    transform: scaleX(0);
 }
 
 .hamburger.active .bar:nth-child(3) {
     transform: translateY(-9px) rotate(-45deg);
+    background-color: var(--accent-secondary);
 }
 
 .mobile-menu {
     position: fixed;
     top: 0;
-    left: -100%;
-    width: 70%;
-    max-width: 300px;
+    left: 0;
+    width: 100vw;
     height: 100vh;
-    background: var(--bg-color);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     z-index: 999;
-    padding: 80px 2rem 2rem;
-    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
-    /* Flipped shadow */
-    transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    padding: 2rem;
     display: flex;
     flex-direction: column;
-}
-
-[data-theme="light"] .mobile-menu {
-    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-20px) scale(0.98);
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .mobile-menu.open {
-    left: 0;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
 }
 
 .mobile-nav-links {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    align-items: center;
+    gap: 3rem;
 }
 
 .mobile-nav-links a {
     text-decoration: none;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--text-secondary);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
     transition: color var(--transition-normal);
+    opacity: 0;
+    transform: translateY(20px);
+    display: inline-block;
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Staggered text entrance animations */
+.mobile-menu.open .mobile-nav-links li:nth-child(1) a {
+    transition-delay: 0.1s;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.mobile-menu.open .mobile-nav-links li:nth-child(2) a {
+    transition-delay: 0.15s;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.mobile-menu.open .mobile-nav-links li:nth-child(3) a {
+    transition-delay: 0.2s;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.mobile-menu.open .mobile-nav-links li:nth-child(4) a {
+    transition-delay: 0.25s;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .mobile-nav-links a:hover,
@@ -1182,6 +1249,55 @@ footer {
     box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
 }
 
+/* Hide scroll-to-top button when mobile menu overlay is active */
+body:has(.mobile-menu.open) .scroll-top-btn {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* ------------------------------------- */
+/* Hacker Mode Easter Egg Animations */
+/* ------------------------------------- */
+body.hacker-mode {
+    filter: invert(1) hue-rotate(180deg) contrast(1.5);
+    animation: glitch 0.2s steps(2, end) infinite;
+    pointer-events: none;
+    /* Disable clicking while shaking */
+}
+
+/* Turn borders green like a terminal */
+body.hacker-mode .glass-card,
+body.hacker-mode .nav-container {
+    border-color: #00FF00 !important;
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.4) !important;
+}
+
+@keyframes glitch {
+    0% {
+        transform: translate(0)
+    }
+
+    20% {
+        transform: translate(-3px, 3px)
+    }
+
+    40% {
+        transform: translate(-3px, -3px)
+    }
+
+    60% {
+        transform: translate(3px, 3px)
+    }
+
+    80% {
+        transform: translate(3px, -3px)
+    }
+
+    100% {
+        transform: translate(0)
+    }
+}
+
 /* Responsive */
 @media (max-width: 900px) {
     .youtube-grid {
@@ -1221,5 +1337,12 @@ footer {
     .blob-container {
         width: 280px;
         height: 350px;
+    }
+}
+
+/* Micro-polish for extremely narrow mobile screens (like iPhone SE) */
+@media (max-width: 400px) {
+    .hero h1 {
+        font-size: 2.5rem;
     }
 }

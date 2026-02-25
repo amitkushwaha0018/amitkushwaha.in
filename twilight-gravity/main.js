@@ -36,6 +36,34 @@ document.addEventListener('DOMContentLoaded', () => {
         interactiveElements.forEach(el => {
             el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
             el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+
+            // Add mobile haptic feedback on click (10ms micro-vibration)
+            el.addEventListener('click', () => {
+                if (navigator.vibrate) {
+                    navigator.vibrate(10);
+                }
+            });
+        });
+
+        // Advanced Magnetic Button Physics
+        const magneticElements = document.querySelectorAll('.btn, .glass-card, .hamburger');
+        magneticElements.forEach(btn => {
+            btn.addEventListener('mousemove', (e) => {
+                const rect = btn.getBoundingClientRect();
+                // Calculate distance from center of element to mouse
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+
+                // Pull element towards mouse based on distance (magnetic effect)
+                btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+                btn.style.transition = 'transform 0.1s ease-out';
+            });
+
+            btn.addEventListener('mouseleave', () => {
+                // Snap back to original position
+                btn.style.transform = `translate(0px, 0px)`;
+                btn.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)';
+            });
         });
     }
 
@@ -112,6 +140,9 @@ document.addEventListener('DOMContentLoaded', () => {
             mobileMenu.classList.toggle('open');
             const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
             hamburger.setAttribute('aria-expanded', !isExpanded);
+
+            // Lock body scroll when overlay is open
+            document.body.style.overflow = hamburger.classList.contains('active') ? 'hidden' : '';
         });
     }
 
@@ -122,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 hamburger.classList.remove('active');
                 mobileMenu.classList.remove('open');
                 hamburger.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
             }
         });
     });
@@ -695,4 +727,23 @@ document.addEventListener('DOMContentLoaded', () => {
             el.addEventListener('click', playHoverSound);
         });
     }
+
+    // 16. Secret Password Easter Egg ("AMIT")
+    let pressed = [];
+    const secretCode = 'amit';
+    window.addEventListener('keyup', (e) => {
+        pressed.push(e.key.toLowerCase());
+        // Keep the array only as long as the secret code
+        pressed.splice(-secretCode.length - 1, pressed.length - secretCode.length);
+
+        if (pressed.join('').includes(secretCode)) {
+            document.body.classList.add('hacker-mode');
+
+            // Revert after 5 seconds
+            setTimeout(() => {
+                document.body.classList.remove('hacker-mode');
+            }, 5000);
+        }
+    });
+
 });
