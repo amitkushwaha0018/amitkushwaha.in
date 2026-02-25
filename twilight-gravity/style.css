@@ -610,6 +610,9 @@ img {
     font-weight: 600;
     display: block;
     margin-bottom: 1rem;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.2s;
 }
 
 .hero h1 {
@@ -620,6 +623,9 @@ img {
     margin-bottom: 0.5rem;
     color: var(--text-primary);
     text-transform: capitalize;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.3s;
 }
 
 .hero .role {
@@ -627,6 +633,9 @@ img {
     color: var(--text-secondary);
     font-weight: 400;
     margin-bottom: 1.5rem;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.4s;
 }
 
 .hero .bio {
@@ -634,11 +643,9 @@ img {
     color: var(--text-secondary);
     max-width: 500px;
     margin-bottom: 2.5rem;
-}
-
-.hero-actions {
-    display: flex;
-    gap: 1rem;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.5s;
 }
 
 .hero-visual {
@@ -646,6 +653,23 @@ img {
     display: flex;
     justify-content: center;
     position: relative;
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+    animation: royalScaleIn 1.4s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.6s;
+}
+
+@keyframes royalSlideUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes royalScaleIn {
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 .blob-container {
@@ -683,6 +707,20 @@ img {
     color: var(--glass-border);
 }
 
+@keyframes profileBloom {
+    0% {
+        opacity: 0;
+        transform: scale(1.15);
+        filter: blur(5px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+    }
+}
+
 .profile-image {
     width: 100%;
     height: 100%;
@@ -690,6 +728,9 @@ img {
     background-position: center;
     background-repeat: no-repeat;
     transition: transform var(--transition-normal);
+    opacity: 0;
+    /* Starts hidden before animation kicks in */
+    animation: profileBloom 1.6s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.8s;
 }
 
 .blob-container:hover .profile-image {
