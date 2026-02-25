@@ -81,6 +81,15 @@ html::-webkit-scrollbar-thumb:hover {
     background: var(--accent-secondary);
 }
 
+/* Force variable updates for Light Theme Scrollbar via explicit class toggle */
+html.light-scrollbar::-webkit-scrollbar-track {
+    background: #F8FAFC !important;
+}
+
+html.light-scrollbar::-webkit-scrollbar-thumb {
+    border: 2px solid #F8FAFC !important;
+}
+
 body {
     font-family: var(--font-main);
     background-color: var(--bg-color);
@@ -148,10 +157,9 @@ body {
 }
 
 [data-theme="light"] .custom-cursor.hover {
-    mix-blend-mode: multiply;
-    background-color: rgba(219, 39, 119, 0.2);
-    /* Soft pink overlay */
-    border: 1px solid var(--accent-secondary);
+    mix-blend-mode: exclusion;
+    background-color: #FFFFFF;
+    border: none;
 }
 
 /* Disable Custom Cursor on Touch Devices */

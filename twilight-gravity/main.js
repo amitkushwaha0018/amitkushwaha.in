@@ -93,6 +93,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const setTheme = (theme, saveToStorage = true) => {
         document.documentElement.setAttribute('data-theme', theme);
+
+        // Force webkit scrollbar repaint by toggling an explicit class
+        if (theme === 'light') {
+            document.documentElement.classList.add('light-scrollbar');
+        } else {
+            document.documentElement.classList.remove('light-scrollbar');
+        }
+
         if (saveToStorage) {
             localStorage.setItem('theme', theme);
         }
@@ -332,18 +340,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 detailsData.items.forEach(video => {
                     const durationStr = video.contentDetails.duration;
 
-                    // Simple ISO 8601 duration parsing for Shorts (under 61 seconds)
-                    let isShort = false;
-                    if (durationStr.includes('M') && !durationStr.includes('H')) {
-                        const minutes = parseInt(durationStr.match(/PT(\d+)M/)?.[1] || 0);
-                        if (minutes === 0 || (minutes === 1 && !durationStr.includes('S'))) {
-                            isShort = true;
-                        }
-                    } else if (!durationStr.includes('M') && !durationStr.includes('H')) {
-                        isShort = true;
+                    // Robust ISO 8601 duration parsing
+                    let totalSeconds = 0;
+                    const matchPattern = durationStr.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+                    if (matchPattern) {
+                        const h = parseInt(matchPattern[1] || 0);
+                        const m = parseInt(matchPattern[2] || 0);
+                        const s = parseInt(matchPattern[3] || 0);
+                        totalSeconds = (h * 3600) + (m * 60) + s;
                     }
 
                     const title = video.snippet.title;
+                    const desc = video.snippet.description ? video.snippet.description.toLowerCase() : '';
+
+                    // Mark as short if <= 65 seconds (covers YT's 1s padding) OR explicitly tagged
+                    let isShort = (totalSeconds <= 65) || title.toLowerCase().includes('#shorts') || desc.includes('#shorts');
+
                     const pubDate = new Date(video.snippet.publishedAt);
                     const date = `${String(pubDate.getDate()).padStart(2, '0')}/${String(pubDate.getMonth() + 1).padStart(2, '0')}/${pubDate.getFullYear()}`;
                     const videoId = video.id;
