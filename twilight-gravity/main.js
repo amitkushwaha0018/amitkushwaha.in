@@ -30,42 +30,46 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.left = e.touches[0].clientX + 'px';
             cursor.style.top = e.touches[0].clientY + 'px';
         }, { passive: true });
+    }
 
-        // Add hover effect to all links, buttons, and magnetic elements
-        const interactiveElements = document.querySelectorAll('a, button, .magnetic-element');
-        interactiveElements.forEach(el => {
+    // Hover & Haptic Feedback Logic
+    const interactiveElements = document.querySelectorAll('a, button, .magnetic-element');
+    interactiveElements.forEach(el => {
+
+        // Add hover effect to custom cursor if it exists
+        if (cursor) {
             el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
             el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+        }
 
-            // Add mobile haptic feedback on click (10ms micro-vibration)
-            el.addEventListener('click', () => {
-                if (navigator.vibrate) {
-                    navigator.vibrate(10);
-                }
-            });
+        // Add mobile haptic feedback on click (10ms micro-vibration)
+        el.addEventListener('click', () => {
+            if (navigator.vibrate) {
+                navigator.vibrate(10);
+            }
+        });
+    });
+
+    // Advanced Magnetic Button Physics
+    const advancedMagneticElements = document.querySelectorAll('.btn, .glass-card, .hamburger');
+    advancedMagneticElements.forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            // Calculate distance from center of element to mouse
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+
+            // Pull element towards mouse based on distance (magnetic effect)
+            btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+            btn.style.transition = 'transform 0.1s ease-out';
         });
 
-        // Advanced Magnetic Button Physics
-        const magneticElements = document.querySelectorAll('.btn, .glass-card, .hamburger');
-        magneticElements.forEach(btn => {
-            btn.addEventListener('mousemove', (e) => {
-                const rect = btn.getBoundingClientRect();
-                // Calculate distance from center of element to mouse
-                const x = e.clientX - rect.left - rect.width / 2;
-                const y = e.clientY - rect.top - rect.height / 2;
-
-                // Pull element towards mouse based on distance (magnetic effect)
-                btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
-                btn.style.transition = 'transform 0.1s ease-out';
-            });
-
-            btn.addEventListener('mouseleave', () => {
-                // Snap back to original position
-                btn.style.transform = `translate(0px, 0px)`;
-                btn.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)';
-            });
+        btn.addEventListener('mouseleave', () => {
+            // Snap back to original position
+            btn.style.transform = `translate(0px, 0px)`;
+            btn.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)';
         });
-    }
+    });
 
     // Page Transition Logic
     const transitionOverlay = document.createElement('div');
@@ -86,6 +90,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.href = targetUrl;
             }, 600); // Matches CSS transition duration
         });
+    });
+
+    // Fix bfcache (Back-Forward Cache) issue where overlay stays stuck when pressing back button
+    window.addEventListener('pageshow', (e) => {
+        if (e.persisted || performance.getEntriesByType("navigation")[0]?.type === "back_forward") {
+            transitionOverlay.classList.remove('active');
+        } else {
+            // Failsafe cleanup 
+            transitionOverlay.classList.remove('active');
+        }
     });
 
     // 1. Theme Toggle Logic

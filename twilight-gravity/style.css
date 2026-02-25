@@ -125,7 +125,7 @@ body {
     will-change: transform, left, top;
 }
 
-/* Custom Cursor */
+/* Custom Cursor (No Color Blending) */
 .custom-cursor {
     position: fixed;
     top: 0;
@@ -137,8 +137,7 @@ body {
     pointer-events: none;
     z-index: 9999;
     transform: translate(-50%, -50%);
-    transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease;
-    mix-blend-mode: exclusion;
+    transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
     will-change: transform, left, top;
 }
 
@@ -146,20 +145,17 @@ body {
     width: 60px;
     height: 60px;
     background-color: var(--accent-secondary);
-    mix-blend-mode: screen;
+    opacity: 0.5;
+    /* See-through, but no color inversion */
 }
 
 /* Light Mode Cursor Overrides */
 [data-theme="light"] .custom-cursor {
-    mix-blend-mode: normal;
     background-color: var(--accent-secondary);
-    /* Pink */
 }
 
 [data-theme="light"] .custom-cursor.hover {
-    mix-blend-mode: exclusion;
-    background-color: #FFFFFF;
-    border: none;
+    background-color: var(--accent-color);
 }
 
 /* Disable Custom Cursor on Touch Devices */
@@ -194,10 +190,6 @@ img {
     max-width: 100%;
     height: auto;
     -webkit-user-drag: none;
-    -khtml-user-drag: none;
-    -moz-user-drag: none;
-    -o-user-drag: none;
-    user-drag: none;
 }
 
 /* Global Utilities */
@@ -678,6 +670,13 @@ img {
     position: relative;
 }
 
+/* Image Protection Utility */
+.protect-image {
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
 .profile-placeholder {
     font-size: 5rem;
     font-weight: 700;
@@ -687,8 +686,9 @@ img {
 .profile-image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: center;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     transition: transform var(--transition-normal);
 }
 

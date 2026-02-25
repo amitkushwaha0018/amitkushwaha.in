@@ -119,8 +119,9 @@
                 <div class="glass-card blob-container">
                     <div class="blob"></div>
                     <div class="blob-inner">
-                        <!-- Profile Image -->
-                        <img src="profile.png" alt="Amit Kushwaha" class="profile-image" id="profile-image">
+                        <!-- Profile Image rendered as CSS Background to prevent extension hooking -->
+                        <div class="profile-image protect-image" role="img" aria-label="Amit Kushwaha"
+                            style="background-image: url('profile.png');"></div>
                     </div>
                 </div>
             </div>
