@@ -685,11 +685,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // iOS 13+ requires explicit permission for DeviceOrientation, which must be triggered by a user gesture.
-    // We attach it to the first interaction (like clicking anywhere on the document)
+    // iOS 13+ requires explicit permission for DeviceOrientation, which must be triggered by user gesture.
     let gyroEnabled = false;
-    document.body.addEventListener('click', () => {
-        if (!gyroEnabled && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const requestGyroPermission = () => {
+            if (gyroEnabled) return;
             DeviceOrientationEvent.requestPermission()
                 .then(permissionState => {
                     if (permissionState === 'granted') {
@@ -698,12 +699,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 })
                 .catch(console.error);
-        } else if (!gyroEnabled) {
-            // Non-iOS 13+ devices (Android, older iOS) don't need permission, enable immediately
-            enableGyroParallax();
-            gyroEnabled = true;
-        }
-    }, { once: true }); // We only need to request this on the very first tap
+        };
+
+        // Listen to any interaction (click or touch) on iOS to trigger permission
+        document.addEventListener('click', requestGyroPermission, { once: true });
+        document.addEventListener('touchstart', requestGyroPermission, { once: true });
+    } else {
+        // Non-iOS 13+ devices (Android, older iOS) do not require permission.
+        // Enable the 3D Parallax effect instantly on page load.
+        enableGyroParallax();
+        gyroEnabled = true;
+    }
 
     // 14. Scroll Progress Bar
     const scrollProgress = document.getElementById('scroll-progress');
