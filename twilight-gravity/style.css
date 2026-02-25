@@ -253,6 +253,13 @@ img {
     transform-style: preserve-3d;
 }
 
+/* Global Interaction Reset */
+a,
+button {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+}
+
 /* Buttons */
 .btn {
     display: inline-block;
@@ -264,6 +271,7 @@ img {
     cursor: pointer;
     border: none;
     font-family: var(--font-main);
+    user-select: none;
 }
 
 .btn-primary {
