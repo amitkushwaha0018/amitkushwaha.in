@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<script>
+    (function () {
+        try {
+            var theme = localStorage.getItem('theme');
+            if (!theme) {
+                theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+            }
+            document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) { }
+    })();
+</script>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Official portfolio and CV website of Amit Kushwaha, an Educator and YouTube Vlogger sharing knowledge and engaging digital content.">
+    <meta name="keywords"
+        content="Amit Kushwaha, Educator, Vlogger, YouTube, Chitrakoot, Content Creator, Portfolio, CV">
+    <meta name="author" content="Amit Kushwaha">
+    <!-- Open Graph for Social Media & SEO -->
+    <meta property="og:title" content="Amit Kushwaha - Educator & Vlogger">
+    <meta property="og:description" content="Official portfolio and CV website of Amit Kushwaha.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.amit-kushwaha.in">
+    <title>Amit Kushwaha</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Background Mouse Aura -->
+    <div class="mouse-aura" id="mouse-aura"></div>
+
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress" id="scroll-progress"></div>
+
+    <!-- Custom Animated Cursor -->
+    <div class="custom-cursor" id="custom-cursor"></div>
+
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="loader-circle"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar hidden-onload" id="navbar">
+        <div class="container nav-container">
+            <div class="nav-brand">
+                <button class="hamburger" id="hamburger" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+                <a href="https://www.amit-kushwaha.in" class="logo">Amit<span>Kushwaha</span></a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#experience">Experience</a></li>
+                <li><a href="#youtube">YouTube</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle Theme">
+                    <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <aside class="mobile-menu" id="mobile-menu">
+        <ul class="mobile-nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#experience">Experience</a></li>
+            <li><a href="#youtube">YouTube</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </aside>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container hero-container">
+            <div class="hero-content hidden" data-animation="fade-up">
+                <span class="greeting" id="dynamic-greeting">Hello, I'm</span>
+                <h1 class="gradient-text">Amit Kushwaha</h1>
+                <h2 class="role">Educator & Vlogger</h2>
+                <p class="bio">I share knowledge and create engaging digital content to inspire, teach, and try to
+                    connect with
+                    people around the world.</p>
+            </div>
+            <div class="hero-visual hidden" data-animation="fade-in">
+                <div class="glass-card blob-container">
+                    <div class="blob"></div>
+                    <div class="blob-inner">
+                        <!-- Profile Image -->
+                        <img src="profile.png" alt="Amit Kushwaha" class="profile-image" id="profile-image">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section id="experience" class="experience section">
+        <div class="container">
+            <h2 class="section-title hidden" data-animation="fade-up">Professional Journey</h2>
+            <div class="timeline">
+                <div class="timeline-item hidden" data-animation="fade-up-stagger">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content glass-card">
+                        <h3 style="display: flex; align-items: center; gap: 0.5rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" style="color: #10B981;">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                                <path d="M3 6h18" />
+                                <path d="M16 10a4 4 0 0 1-8 0" />
+                            </svg>
+                            Sales Man
+                        </h3>
+                        <span class="company">Medical Store</span>
+                        <span class="date">2021 - 2025</span>
+                        <p>Worked as a Sales Man at a local medical store in my district. This role provided valuable
+                            experience in customer service, allowing me to connect with and help a diverse range of
+                            people for the first time while learning the daily operations of a pharmacy.</p>
+                    </div>
+                </div>
+                <div class="timeline-item hidden" data-animation="fade-up-stagger">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content glass-card">
+                        <h3 style="display: flex; align-items: center; gap: 0.5rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" style="color: var(--accent-secondary);">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                            </svg>
+                            Corporate Job
+                        </h3>
+                        <span class="company">Private Automotive Corporation</span>
+                        <span class="date">2025 - 2026</span>
+                        <p>Secured a corporate position to attain personal financial stability. This role enabled me to
+                            invest in my first professional-grade dream laptop, marking a critical milestone in
+                            pursuing my ultimate passion project: content creation and becoming a successful YouTuber.
+                        </p>
+                    </div>
+                </div>
+                <div class="timeline-item hidden" data-animation="fade-up-stagger">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content glass-card">
+                        <h3 style="display: flex; align-items: center; gap: 0.5rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" style="color: #FF0000;">
+                                <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14v-4z" />
+                                <rect x="3" y="6" width="12" height="12" rx="2" ry="2" />
+                            </svg>
+                            Content Creation Journey
+                        </h3>
+                        <span class="company">YouTube</span>
+                        <span class="date">2022 - Present</span>
+                        <p>Purchased my first personal smartphone while working at the district medical store. This
+                            milestone enabled me to officially launch my content creation journey on YouTube, sparking a
+                            deep passion for digital storytelling and video production.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Statistics Section -->
+    <section id="stats" class="stats section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card glass-card hidden" data-animation="zoom-in">
+                    <span class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="color: var(--accent-color);">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </span>
+                    <h3 class="counter" data-target="45200">0</h3>
+                    <p>Subscribers</p>
+                </div>
+                <div class="stat-card glass-card hidden" data-animation="zoom-in" style="animation-delay: 0.1s;">
+                    <span class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="color: var(--accent-secondary);">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </span>
+                    <h3 class="counter" data-target="1200000">0</h3>
+                    <p>Total Views</p>
+                </div>
+                <div class="stat-card glass-card hidden" data-animation="zoom-in" style="animation-delay: 0.2s;">
+                    <span class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="color: var(--accent-tertiary);">
+                            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                        </svg>
+                    </span>
+                    <h3 class="counter" data-target="400">0</h3>
+                    <p>Videos Created</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- YouTube Section -->
+    <section id="youtube" class="youtube section">
+        <div class="container">
+            <div class="youtube-header hidden" data-animation="fade-up">
+                <h2 class="section-title">Latest Content</h2>
+                <a href="https://youtube.com/@amitkushwaha0018" class="btn btn-primary yt-subscribe">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="currentColor" stroke="none">
+                        <path
+                            d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z" />
+                        <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#fff" />
+                    </svg>
+                    Subscribe
+                </a>
+            </div>
+
+            <div class="youtube-grid">
+                <!-- Shorts Column -->
+                <div class="yt-column hidden" data-animation="fade-up-stagger">
+                    <h3 class="column-title">Recent Shorts</h3>
+                    <div class="shorts-container" id="youtube-shorts-container">
+                        <p style="color: var(--text-secondary); text-align: center; width: 100%; padding: 3rem 0;">
+                            Loading
+                            latest shorts...</p>
+                    </div>
+                </div>
+
+                <!-- Videos Column -->
+                <div class="yt-column hidden" data-animation="fade-up-stagger">
+                    <h3 class="column-title">Recent Videos</h3>
+                    <div class="videos-container" id="youtube-videos-container">
+                        <div class="video-wrapper widescreen glass-card"
+                            style="display: flex; align-items: center; justify-content: center; min-height: 250px;">
+                            <p style="color: var(--text-secondary); text-align: center; margin: 0;">No long-form videos
+                                available yet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Contact Section -->
+    <section id="contact" class="contact section">
+        <div class="container">
+            <div class="contact-box glass-card hidden" data-animation="zoom-in">
+                <h2 class="section-title">Let's Connect</h2>
+                <a href="mailto:contact@amit-kushwaha.in" class="btn btn-primary btn-large"
+                    style="display: inline-flex; align-items: center; gap: 0.5rem; justify-content: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    Say Hello
+                </a>
+                <div class="social-links">
+                    <a href="https://www.instagram.com/amitkushwaha_0018" target="_blank" rel="noopener noreferrer"
+                        aria-label="Instagram">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </a>
+                    <a href="https://www.facebook.com/Amitkushwaha018" target="_blank" rel="noopener noreferrer"
+                        aria-label="Facebook">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                        </svg>
+                    </a>
+                    <a href="https://www.linkedin.com/in/amitkushwaha0018" target="_blank" rel="noopener noreferrer"
+                        aria-label="LinkedIn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z">
+                            </path>
+                            <rect x="2" y="9" width="4" height="12"></rect>
+                            <circle cx="4" cy="4" r="2"></circle>
+                        </svg>
+                    </a>
+                    <a href="https://x.com/amitkushwaha018" target="_blank" rel="noopener noreferrer"
+                        aria-label="X (formerly Twitter)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                            fill="currentColor" stroke="none">
+                            <path
+                                d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scroll to Top Button -->
+    <button id="scroll-top" class="scroll-top-btn" aria-label="Scroll to top">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 15l-6-6-6 6" />
+        </svg>
+    </button>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Amit Kushwaha.</p>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+
+</html>
