@@ -89,15 +89,24 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 window.location.href = targetUrl;
             }, 600); // Matches CSS transition duration
+
+            // Extreme Failsafe: If the page hasn't unloaded after 2 seconds, remove the overlay
+            // This catches edge cases where the browser blocks the navigation or opens it in a new tab silently
+            setTimeout(() => {
+                transitionOverlay.classList.remove('active');
+            }, 2000);
         });
     });
 
     // Fix bfcache (Back-Forward Cache) issue where overlay stays stuck when pressing back button
     window.addEventListener('pageshow', (e) => {
-        if (e.persisted || performance.getEntriesByType("navigation")[0]?.type === "back_forward") {
-            transitionOverlay.classList.remove('active');
-        } else {
-            // Failsafe cleanup 
+        // Always try to remove it when the page is shown, regardless of bfcache status
+        transitionOverlay.classList.remove('active');
+    });
+
+    // Secondary iOS/Safari Mobile Failsafe: Clear overlay when tab becomes visible again
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
             transitionOverlay.classList.remove('active');
         }
     });
