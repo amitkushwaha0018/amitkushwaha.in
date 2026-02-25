@@ -104,8 +104,11 @@ body {
     /* Standard syntax */
     transition: background-color var(--transition-normal),
         color var(--transition-normal);
-    cursor: none;
-    /* Hide default cursor */
+}
+
+/* Force hide default cursor globally, overriding button/link specific cursors */
+* {
+    cursor: none !important;
 }
 
 /* Background Mouse Aura */
@@ -136,9 +139,8 @@ body {
     background-color: var(--accent-color);
     pointer-events: none;
     z-index: 9999;
-    transform: translate(-50%, -50%);
     transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
-    will-change: transform, left, top;
+    will-change: transform;
 }
 
 .custom-cursor.hover {

@@ -16,19 +16,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const cursor = document.getElementById('custom-cursor');
     if (cursor) {
         document.addEventListener('mousemove', e => {
-            cursor.style.left = e.clientX + 'px';
-            cursor.style.top = e.clientY + 'px';
+            // Offset by 10px (half the width/height) to perfectly center the cursor
+            cursor.style.transform = `translate(${e.clientX - 10}px, ${e.clientY - 10}px)`;
         });
 
         // Add touch support for mobile
         document.addEventListener('touchmove', e => {
-            cursor.style.left = e.touches[0].clientX + 'px';
-            cursor.style.top = e.touches[0].clientY + 'px';
+            cursor.style.transform = `translate(${e.touches[0].clientX - 10}px, ${e.touches[0].clientY - 10}px)`;
         }, { passive: true });
 
         document.addEventListener('touchstart', e => {
-            cursor.style.left = e.touches[0].clientX + 'px';
-            cursor.style.top = e.touches[0].clientY + 'px';
+            cursor.style.transform = `translate(${e.touches[0].clientX - 10}px, ${e.touches[0].clientY - 10}px)`;
         }, { passive: true });
     }
 
