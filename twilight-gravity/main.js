@@ -623,6 +623,175 @@ document.addEventListener('DOMContentLoaded', () => {
         greetingElement.textContent = `${greeting}, I'm`;
     }
 
+    // 11.5 Dynamic Live Festival Greetings (Powered by Public Holiday API & Auto-Images)
+    const initFestivals = async () => {
+        const today = new Date();
+        const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
+        const currentDate = String(today.getDate()).padStart(2, '0');
+        const currentYear = today.getFullYear();
+        // Fallback test mode: const dateKey = "02-26"; 
+        const dateKey = `${currentMonth}-${currentDate}`;
+
+        let festivals = {};
+
+        try {
+            // Fetch live Public Holidays for India from a free, no-auth API
+            const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${currentYear}/IN`);
+            if (!response.ok) throw new Error("API Offline");
+            const data = await response.json();
+
+            // Map the API data into our dynamic dictionary template
+            data.forEach(holiday => {
+                const apiDate = holiday.date.substring(5); // Extract MM-DD from YYYY-MM-DD
+                const name = holiday.localName || holiday.name;
+
+                // Intelligently assign a keyword and a trio of premium mini-images for the header
+                let keyword = name.split(' ')[0]; // E.g. "Diwali"
+
+                // Set default beautiful fallback icons in case a specific festival isn't mapped
+                let icons = ["assets/festivals/india_3.png", "assets/festivals/diwali_2.png", "assets/festivals/diwali_3.png"];
+
+                const lowerName = name.toLowerCase();
+                if (lowerName.includes("diwali")) { keyword = "diwali,lamp"; icons = ["assets/festivals/diwali_1.png", "assets/festivals/diwali_2.png", "assets/festivals/diwali_3.png"]; }
+                else if (lowerName.includes("holi")) { keyword = "holi,colors"; icons = ["assets/festivals/holi.png", "assets/festivals/holi_2.png", "assets/festivals/holi_3.png"]; }
+                else if (lowerName.includes("republic") || lowerName.includes("independence")) { keyword = "india,flag"; icons = ["assets/festivals/india.png", "assets/festivals/india_2.png", "assets/festivals/india_3.png"]; }
+                else if (lowerName.includes("raksha")) { keyword = "rakhi,thread"; icons = ["assets/festivals/diwali_3.png", "assets/festivals/india_3.png", "assets/festivals/diwali_1.png"]; }
+                else if (lowerName.includes("sankranti")) { keyword = "kite,festival"; icons = ["assets/festivals/holi.png", "assets/festivals/diwali_2.png", "assets/festivals/india_3.png"]; }
+                else if (lowerName.includes("christmas")) { keyword = "christmas,tree"; icons = ["assets/festivals/diwali_2.png", "assets/festivals/diwali_3.png", "assets/festivals/india_3.png"]; }
+                else if (lowerName.includes("year")) { keyword = "fireworks,newyear"; icons = ["assets/festivals/diwali_2.png", "assets/festivals/diwali_3.png", "assets/festivals/india_2.png"]; }
+
+                festivals[apiDate] = {
+                    name: name,
+                    text: `Happy ${name}!`,
+                    icons: icons,
+                    keyword: keyword
+                };
+            });
+
+        } catch (error) {
+            console.log("Festival API offline, using fallback fixed dates.");
+            // Lightweight fallback if the internet API ever goes down
+            festivals = {
+                "01-01": { name: "New Year", text: `Happy New Year! 🎆`, icons: ["🎆", "🥂", "✨"], keyword: "fireworks" },
+                "01-14": { name: "Makar Sankranti", text: "Happy Makar Sankranti! 🪁", icons: ["🪁", "☀️", "☁️"], keyword: "kite" },
+                "01-26": { name: "Republic Day", text: "Happy Republic Day! 🇮🇳", icons: ["🇮🇳", "🫡", "🕊️"], keyword: "india" },
+                "08-15": { name: "Independence Day", text: "Happy Independence Day! 🇮🇳", icons: ["🇮🇳", "🫡", "🕊️"], keyword: "india" },
+                "12-25": { name: "Christmas", text: "Merry Christmas! 🎄", icons: ["🎄", "🎁", "❄️"], keyword: "christmas" }
+            };
+        }
+
+        // --- TEST OVERRIDE FOR DEVELOPMENT ---
+        // festivals["02-26"] = { name: "Holi", text: "Happy Holi! 🔴", icons: ["🔴", "🟢", "🔵"], keyword: "holi,colors" };
+
+        const activeFestival = festivals[dateKey];
+
+        if (activeFestival) {
+            // 1. Override the Hero Text Greeting (Replaces "Good morning")
+            if (greetingElement) {
+                greetingElement.textContent = activeFestival.text;
+
+                // Add a subtle celebratory glow and brand color to the text
+                greetingElement.style.color = 'var(--accent-color)';
+                greetingElement.style.fontWeight = '700';
+                greetingElement.style.textShadow = '0 0 15px rgba(99, 102, 241, 0.4)';
+
+                // Re-inject the static "I'm" below the festival greeting so the layout doesn't break
+                const imSpan = document.createElement('span');
+                imSpan.style.color = 'var(--text-primary)';
+                imSpan.style.fontWeight = '400';
+                imSpan.style.textShadow = 'none';
+                imSpan.style.marginLeft = '10px';
+                imSpan.textContent = "I'm";
+                greetingElement.appendChild(imSpan);
+            }
+
+            // 2. Inject 3 distinct Navbar Icons next to the theme toggle
+            const navActions = document.querySelector('.nav-actions');
+            const themeToggle = document.getElementById('theme-toggle');
+
+            if (navActions && themeToggle) {
+                const iconContainer = document.createElement('div');
+                iconContainer.className = 'festive-nav-container';
+                iconContainer.style.cssText = `
+                    display: flex;
+                    gap: 8px;
+                    margin-right: 15px;
+                    align-items: center;
+                `;
+
+                activeFestival.icons.forEach((iconChar, index) => {
+                    if (iconChar.endsWith('.png') || iconChar.endsWith('.jpg')) {
+                        const img = document.createElement('img');
+                        img.src = iconChar;
+                        img.alt = "Festival Element";
+                        img.style.cssText = `
+                            width: 25px;
+                            height: 25px;
+                            border-radius: 50%;
+                            object-fit: cover;
+                            animation: pulse ${2 + (index * 0.5)}s infinite;
+                            filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.6));
+                            user-select: none;
+                        `;
+                        iconContainer.appendChild(img);
+                    } else {
+                        const i = document.createElement('span');
+                        i.textContent = iconChar;
+                        i.style.cssText = `
+                            font-size: 1.2rem;
+                            animation: pulse ${2 + (index * 0.5)}s infinite;
+                            filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.6));
+                            cursor: default;
+                            user-select: none;
+                        `;
+                        iconContainer.appendChild(i);
+                    }
+                });
+
+                navActions.insertBefore(iconContainer, themeToggle);
+            }
+
+            // 3. Inject the Premium Glassmorphism Popup Overlay with Dynamic Auto-Image
+            // We use standard Unsplash image fetching. It automatically resolves to a random premium photo matching the festival keyword!
+            const imageUrl = `https://source.unsplash.com/600x400/?${activeFestival.keyword},celebration`;
+
+            const festiveOverlay = document.createElement('div');
+            festiveOverlay.className = 'festive-overlay active';
+            festiveOverlay.innerHTML = `
+                <div class="festive-card glass-card" style="padding: 0; overflow: hidden; max-width: 400px;">
+                    <button class="festive-close" id="festive-close" aria-label="Close Greeting" style="position: absolute; top: 10px; right: 10px; z-index: 10; background: rgba(0,0,0,0.5); border-radius: 50%; width: 30px; height: 30px; color: white;">&times;</button>
+                    
+                    <div style="width: 100%; height: 200px; background-color: var(--bg-tertiary); position: relative;">
+                        <!-- The smart image automatically pulled based on the holiday name -->
+                        <img src="${imageUrl}" alt="${activeFestival.name} Celebration" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.9;">
+                        <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to top, var(--bg-secondary) 10%, transparent);"></div>
+                    </div>
+                    
+                    <div style="padding: 2rem;">
+                        <h2 style="margin-bottom: 0.5rem; color: var(--accent-color);">${activeFestival.text}</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.95rem;">Wishing you joy, success, and prosperity on this special day!</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(festiveOverlay);
+
+            // Close logic for popup
+            const closeBtn = document.getElementById('festive-close');
+            const closeGreeting = () => {
+                festiveOverlay.classList.remove('active');
+                setTimeout(() => festiveOverlay.remove(), 500); // Wait for CSS fade out
+            };
+
+            closeBtn.addEventListener('click', closeGreeting);
+
+            // Auto-close popup after 10 seconds due to the premium image
+            setTimeout(closeGreeting, 10000);
+        }
+    };
+
+    // Execute the live data fetch safely in the background
+    initFestivals();
+
     // 12. Background Mouse Aura tracking
     const mouseAura = document.getElementById('mouse-aura');
     if (mouseAura) {
@@ -643,71 +812,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { passive: true });
     }
 
-    // 13. Mobile Gyroscope 3D Parallax Effect
-    // This taps into the physical phone hardware to tilt cards when the phone is tilted
 
-    // Function to attach gyroscope listener
-    const enableGyroParallax = () => {
-        if (window.DeviceOrientationEvent) {
-            window.addEventListener('deviceorientation', (event) => {
-                const gamma = event.gamma;
-                const beta = event.beta;
-
-                if (gamma !== null && beta !== null) {
-                    const clampedGamma = Math.min(Math.max(gamma, -25), 25);
-                    const relativeBeta = beta - 45;
-                    const clampedBeta = Math.min(Math.max(relativeBeta, -25), 25);
-
-                    const tiltX = -(clampedBeta / 25) * 10;
-                    const tiltY = (clampedGamma / 25) * 10;
-                    const moveX = (clampedGamma / 25) * -15;
-                    const moveY = (clampedBeta / 25) * -15;
-
-                    requestAnimationFrame(() => {
-                        // 1. Tilt Foreground Cards
-                        const cards = document.querySelectorAll('.glass-card');
-                        cards.forEach(card => {
-                            card.style.transform = `perspective(1000px) translate3d(${moveX}px, ${moveY}px, 0) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
-                            card.style.transition = 'transform 0.1s ease-out';
-                        });
-
-                        // 2. Parallax Background Aura (moves opposite and larger distance)
-                        const aura = document.getElementById('mouse-aura');
-                        if (aura) {
-                            // Multiply the move distance to simulate it being further away in the background
-                            aura.style.transform = `translate(-50%, -50%) translate3d(${moveX * -3}px, ${moveY * -3}px, 0)`;
-                        }
-                    });
-                }
-            });
-        }
-    };
-
-    // iOS 13+ requires explicit permission for DeviceOrientation, which must be triggered by user gesture.
-    let gyroEnabled = false;
-
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        const requestGyroPermission = () => {
-            if (gyroEnabled) return;
-            DeviceOrientationEvent.requestPermission()
-                .then(permissionState => {
-                    if (permissionState === 'granted') {
-                        enableGyroParallax();
-                        gyroEnabled = true;
-                    }
-                })
-                .catch(console.error);
-        };
-
-        // Listen to any interaction (click or touch) on iOS to trigger permission
-        document.addEventListener('click', requestGyroPermission, { once: true });
-        document.addEventListener('touchstart', requestGyroPermission, { once: true });
-    } else {
-        // Non-iOS 13+ devices (Android, older iOS) do not require permission.
-        // Enable the 3D Parallax effect instantly on page load.
-        enableGyroParallax();
-        gyroEnabled = true;
-    }
 
     // 14. Scroll Progress Bar
     const scrollProgress = document.getElementById('scroll-progress');
