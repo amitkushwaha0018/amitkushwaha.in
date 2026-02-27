@@ -978,9 +978,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Handle the actual form submission
+        // 19. Background FormSubmit API Delivery
         feedbackForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
             const nameInput = document.getElementById('feedback-name');
             const titleInput = document.getElementById('feedback-title');
             const messageInput = document.getElementById('feedback-message');
@@ -991,27 +992,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const title = titleInput.value.trim();
             const message = messageInput.value.trim();
 
+            if (!name || !title || !message) return;
+
             const originalText = submitBtn.textContent;
             submitBtn.textContent = 'Sending...';
             submitBtn.style.opacity = '0.7';
             submitBtn.disabled = true;
 
             try {
-                // Sending as form-urlencoded forces FormSubmit to process the activation trigger more reliably 
-                // than a pure JSON payload on the very first request.
-                const response = await fetch("https://formsubmit.co/ajax/contact@amit-kushwaha.in", {
+                // Web3Forms API Delivery
+                const formData = new FormData(feedbackForm);
+                const object = Object.fromEntries(formData);
+                const json = JSON.stringify(object);
+
+                const response = await fetch("https://api.web3forms.com/submit", {
                     method: "POST",
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'Accept': 'application/json'
+                        "Content-Type": "application/json",
+                        Accept: "application/json"
                     },
-                    body: new URLSearchParams({
-                        name: name,
-                        _subject: `New Feedback: ${title}`,
-                        message: message,
-                        _template: "box",
-                        _captcha: "false"
-                    })
+                    body: json
                 });
 
                 if (response.ok) {
@@ -1020,13 +1020,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     messageInput.value = '';
                     successMsg.style.display = 'block';
 
-                    // After 2.5 seconds, hide success message and automatically close the modal
                     setTimeout(() => {
                         successMsg.style.display = 'none';
                         closeModal();
                     }, 2500);
                 } else {
-                    alert('Could not send feedback at this time. Please try again later.');
+                    const result = await response.json();
+                    console.error("Web3Forms Error:", result);
+                    alert("Delivery Error: " + (result.message || "Please check your Access Key and try again."));
                 }
             } catch (error) {
                 console.error('Feedback Error:', error);
@@ -1037,6 +1038,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.disabled = false;
             }
         });
+
     }
 
 });

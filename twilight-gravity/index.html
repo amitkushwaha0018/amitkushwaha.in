@@ -24,12 +24,12 @@
     <!-- Strict Content Security Policy (CSP) Firewall -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self'; 
-        script-src 'self' 'unsafe-inline'; 
+        script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; 
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
         font-src 'self' https://fonts.gstatic.com; 
         img-src 'self' data: https://source.unsplash.com https://images.unsplash.com https://i.ytimg.com; 
         frame-src 'self' https://www.youtube.com;
-        connect-src 'self' https://date.nager.at https://www.googleapis.com https://formsubmit.co;
+        connect-src 'self' https://date.nager.at https://www.googleapis.com https://formsubmit.co https://api.emailjs.com;
     ">
 
     <!-- Open Graph for Social Media & SEO -->
@@ -47,6 +47,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+
+
 </head>
 
 <body>
@@ -407,20 +409,26 @@
             </div>
 
             <form id="feedback-form" class="feedback-form" style="margin-top: 2rem;">
+
+                <!-- Web3Forms Access Key - GET YOUR FREE KEY FROM WEB3FORMS.COM -->
+                <input type="hidden" name="access_key" value="8249fc4b-f5a7-440f-9319-6943e21f01a4">
+                <input type="hidden" name="subject" value="New Portfolio Feedback">
+                <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
                     <div>
                         <label for="feedback-name"
                             style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem; font-weight: 500;">Your
                             Name</label>
-                        <input type="text" id="feedback-name" placeholder="Amit Kushwaha" required class="form-control"
-                            style="background: rgba(0,0,0,0.15);">
+                        <input type="text" id="feedback-name" name="name" placeholder="Amit Kushwaha" required
+                            class="form-control" style="background: rgba(0,0,0,0.15);">
                     </div>
                     <div>
                         <label for="feedback-title"
                             style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem; font-weight: 500;">Subject
                             Line</label>
-                        <input type="text" id="feedback-title" placeholder="E.g., Great Video Idea!" required
-                            class="form-control" style="background: rgba(0,0,0,0.15);">
+                        <input type="text" id="feedback-title" name="subject" placeholder="E.g., Great Video Idea!"
+                            required class="form-control" style="background: rgba(0,0,0,0.15);">
                     </div>
                 </div>
                 <div style="margin-bottom: 1.5rem;">
@@ -429,8 +437,9 @@
                         <label for="feedback-message"
                             style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0; font-weight: 500;">Message</label>
                     </div>
-                    <textarea id="feedback-message" placeholder="Take your time, let me know what you think..." required
-                        class="form-control" style="min-height: 150px; background: rgba(0,0,0,0.15);"></textarea>
+                    <textarea id="feedback-message" name="message"
+                        placeholder="Take your time, let me know what you think..." required class="form-control"
+                        style="min-height: 150px; background: rgba(0,0,0,0.15);"></textarea>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
