@@ -991,25 +991,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const title = titleInput.value.trim();
             const message = messageInput.value.trim();
 
-            if (!message || !name || !title) return;
-
             const originalText = submitBtn.textContent;
             submitBtn.textContent = 'Sending...';
             submitBtn.style.opacity = '0.7';
             submitBtn.disabled = true;
 
             try {
-                // FormSubmit allows completely backendless email routing 
+                // Sending as form-urlencoded forces FormSubmit to process the activation trigger more reliably 
+                // than a pure JSON payload on the very first request.
                 const response = await fetch("https://formsubmit.co/ajax/contact@amit-kushwaha.in", {
                     method: "POST",
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded',
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({
-                        _subject: `New Feedback: ${title}`,
+                    body: new URLSearchParams({
                         name: name,
-                        message: message
+                        _subject: `New Feedback: ${title}`,
+                        message: message,
+                        _template: "box",
+                        _captcha: "false"
                     })
                 });
 
