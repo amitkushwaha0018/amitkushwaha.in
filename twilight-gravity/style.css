@@ -138,7 +138,7 @@ body {
     border-radius: 50%;
     background-color: var(--accent-color);
     pointer-events: none;
-    z-index: 9999;
+    z-index: 10000;
     transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
     will-change: transform;
 }
@@ -1393,6 +1393,127 @@ footer {
 body:has(.mobile-menu.open) .scroll-top-btn {
     opacity: 0 !important;
     visibility: hidden !important;
+}
+
+/* ------------------------------------- */
+/* Feedback Form Styles */
+/* ------------------------------------- */
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    align-items: stretch;
+}
+
+.contact-grid .contact-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 100%;
+    margin: 0;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    /* Match glass card interior */
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+[data-theme="light"] .form-control {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.form-control::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.form-control:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .form-control:focus {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* ------------------------------------- */
+/* Modal Open Overrides */
+/* ------------------------------------- */
+body.modal-open .mouse-aura {
+    display: none !important;
+}
+
+body.modal-open .custom-cursor.hover {
+    width: 20px !important;
+    height: 20px !important;
+    background-color: var(--accent-color) !important;
+    opacity: 1 !important;
+}
+
+body.modal-open .custom-cursor {
+    z-index: 10000 !important;
+}
+
+/* ------------------------------------- */
+/* Feedback Modal Overlay & Styles */
+/* ------------------------------------- */
+.modal-overlay {
+    position: fixed;
+    /* Lock to viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(10, 10, 15, 0.6);
+    backdrop-filter: blur(15px);
+    /* Heavy glassmorphism blur */
+    -webkit-backdrop-filter: blur(15px);
+    z-index: 9999;
+    /* Highest layer */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+[data-theme="light"] .modal-overlay {
+    background: rgba(250, 250, 255, 0.5);
+}
+
+.modal-content {
+    width: 90%;
+    max-width: 500px;
+    transform: translateY(30px) scale(0.95);
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Popping animation on open */
+.modal-overlay.active .modal-content {
+    transform: translateY(0) scale(1);
 }
 
 /* ------------------------------------- */

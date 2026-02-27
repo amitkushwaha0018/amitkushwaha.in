@@ -15,29 +15,43 @@ document.addEventListener('DOMContentLoaded', () => {
     // Custom Cursor Logic
     const cursor = document.getElementById('custom-cursor');
     if (cursor) {
-        document.addEventListener('mousemove', e => {
-            // Offset by 10px (half the width/height) to perfectly center the cursor
-            cursor.style.transform = `translate(${e.clientX - 10}px, ${e.clientY - 10}px)`;
-        });
+        let cursorX = window.innerWidth / 2;
+        let cursorY = window.innerHeight / 2;
+        let isCursorMoving = false;
 
-        // Add touch support for mobile
-        document.addEventListener('touchmove', e => {
-            cursor.style.transform = `translate(${e.touches[0].clientX - 10}px, ${e.touches[0].clientY - 10}px)`;
-        }, { passive: true });
+        const renderCursor = () => {
+            cursor.style.transform = `translate(${cursorX - 10}px, ${cursorY - 10}px)`;
+            isCursorMoving = false;
+        };
 
-        document.addEventListener('touchstart', e => {
-            cursor.style.transform = `translate(${e.touches[0].clientX - 10}px, ${e.touches[0].clientY - 10}px)`;
-        }, { passive: true });
+        const updateCursorPos = (x, y) => {
+            cursorX = x;
+            cursorY = y;
+            if (!isCursorMoving) {
+                isCursorMoving = true;
+                requestAnimationFrame(renderCursor);
+            }
+        };
+
+        document.addEventListener('mousemove', e => updateCursorPos(e.clientX, e.clientY));
+        document.addEventListener('touchmove', e => updateCursorPos(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+        document.addEventListener('touchstart', e => updateCursorPos(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
     }
 
     // Hover & Haptic Feedback Logic
-    const interactiveElements = document.querySelectorAll('a, button, .magnetic-element');
+    const interactiveElements = document.querySelectorAll('a, button, .magnetic-element, input, textarea');
     interactiveElements.forEach(el => {
 
-        // Add hover effect to custom cursor if it exists
+        // Add hover effect to custom cursor if it exists AND modal is not open
         if (cursor) {
-            el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
-            el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+            el.addEventListener('mouseenter', () => {
+                if (!document.body.classList.contains('modal-open')) {
+                    cursor.classList.add('hover');
+                }
+            });
+            el.addEventListener('mouseleave', () => {
+                cursor.classList.remove('hover');
+            });
         }
 
         // Add mobile haptic feedback on click (10ms micro-vibration)
@@ -51,21 +65,36 @@ document.addEventListener('DOMContentLoaded', () => {
     // Advanced Magnetic Button Physics
     const advancedMagneticElements = document.querySelectorAll('.btn, .glass-card, .hamburger');
     advancedMagneticElements.forEach(btn => {
+        let magneticX = 0; let magneticY = 0;
+        let isMagneticMoving = false;
+
+        const renderMagnetic = () => {
+            btn.style.transform = `translate(${magneticX * 0.3}px, ${magneticY * 0.3}px)`;
+            btn.style.transition = 'transform 0.1s ease-out';
+            isMagneticMoving = false;
+        };
+
         btn.addEventListener('mousemove', (e) => {
+            // Disable background magnetic effects if a modal is open 
+            if (document.body.classList.contains('modal-open')) return;
+
             const rect = btn.getBoundingClientRect();
             // Calculate distance from center of element to mouse
-            const x = e.clientX - rect.left - rect.width / 2;
-            const y = e.clientY - rect.top - rect.height / 2;
+            magneticX = e.clientX - rect.left - rect.width / 2;
+            magneticY = e.clientY - rect.top - rect.height / 2;
 
-            // Pull element towards mouse based on distance (magnetic effect)
-            btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
-            btn.style.transition = 'transform 0.1s ease-out';
+            if (!isMagneticMoving) {
+                isMagneticMoving = true;
+                requestAnimationFrame(renderMagnetic);
+            }
         });
 
         btn.addEventListener('mouseleave', () => {
-            // Snap back to original position
-            btn.style.transform = `translate(0px, 0px)`;
-            btn.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)';
+            // Snap back to original position cleanly without queueing
+            requestAnimationFrame(() => {
+                btn.style.transform = `translate(0px, 0px)`;
+                btn.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)';
+            });
         });
     });
 
@@ -801,21 +830,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // 12. Background Mouse Aura tracking
     const mouseAura = document.getElementById('mouse-aura');
     if (mouseAura) {
-        document.addEventListener('mousemove', (e) => {
-            // Add a slight delay/smoothness to the aura compared to the sharp custom cursor
-            setTimeout(() => {
-                mouseAura.style.left = e.clientX + 'px';
-                mouseAura.style.top = e.clientY + 'px';
-            }, 50);
-        });
+        let auraX = window.innerWidth / 2;
+        let auraY = window.innerHeight / 2;
+        let isAuraMoving = false;
+
+        const renderAura = () => {
+            mouseAura.style.left = auraX + 'px';
+            mouseAura.style.top = auraY + 'px';
+            isAuraMoving = false;
+        };
+
+        const updateAuraPos = (x, y) => {
+            auraX = x;
+            auraY = y;
+            if (!isAuraMoving) {
+                isAuraMoving = true;
+                // Add a slight intentional CSS delay for fluidity rather than JS exact timeout
+                setTimeout(() => requestAnimationFrame(renderAura), 30);
+            }
+        };
+
+        document.addEventListener('mousemove', (e) => updateAuraPos(e.clientX, e.clientY));
 
         // Add touch support for mobile aura
-        document.addEventListener('touchmove', (e) => {
-            setTimeout(() => {
-                mouseAura.style.left = e.touches[0].clientX + 'px';
-                mouseAura.style.top = e.touches[0].clientY + 'px';
-            }, 50);
-        }, { passive: true });
+        document.addEventListener('touchmove', (e) => updateAuraPos(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
     }
 
 
@@ -878,24 +916,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 16. Secret Password Easter Egg ("AMIT")
-    let pressed = [];
-    const secretCode = 'amit';
-    window.addEventListener('keyup', (e) => {
-        pressed.push(e.key.toLowerCase());
-        // Keep the array only as long as the secret code
-        pressed.splice(-secretCode.length - 1, pressed.length - secretCode.length);
-
-        if (pressed.join('').includes(secretCode)) {
-            document.body.classList.add('hacker-mode');
-
-            // Revert after 5 seconds
-            setTimeout(() => {
-                document.body.classList.remove('hacker-mode');
-            }, 5000);
-        }
-    });
-
     // 17. Security & Anti-Scraping Shield
     // Block Right Click (Context Menu)
     document.addEventListener('contextmenu', e => e.preventDefault());
@@ -923,5 +943,99 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
         }
     });
+
+    // 18. Feedback Modal & FormSubmit API Logic
+    const openFeedbackBtn = document.getElementById('open-feedback-btn');
+    const closeFeedbackBtn = document.getElementById('close-feedback-btn');
+    const feedbackModal = document.getElementById('feedback-modal');
+    const feedbackForm = document.getElementById('feedback-form');
+
+    if (openFeedbackBtn && closeFeedbackBtn && feedbackModal && feedbackForm) {
+
+        // Open Modal
+        openFeedbackBtn.addEventListener('click', () => {
+            feedbackModal.classList.add('active');
+            document.body.classList.add('modal-open');
+            // Forcefully remove any lingering hover state just in case
+            const cursor = document.getElementById('custom-cursor');
+            if (cursor) cursor.classList.remove('hover');
+
+            // Auto-focus the textarea for immediate typing
+            setTimeout(() => document.getElementById('feedback-message').focus(), 100);
+        });
+
+        // Close Modal via Button
+        const closeModal = () => {
+            feedbackModal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+        };
+        closeFeedbackBtn.addEventListener('click', closeModal);
+
+        // Close Modal by clicking the blurred background overlay
+        feedbackModal.addEventListener('click', (e) => {
+            if (e.target === feedbackModal) {
+                closeModal();
+            }
+        });
+
+        // Handle the actual form submission
+        feedbackForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('feedback-name');
+            const titleInput = document.getElementById('feedback-title');
+            const messageInput = document.getElementById('feedback-message');
+            const submitBtn = feedbackForm.querySelector('button[type="submit"]');
+            const successMsg = document.getElementById('feedback-success');
+
+            const name = nameInput.value.trim();
+            const title = titleInput.value.trim();
+            const message = messageInput.value.trim();
+
+            if (!message || !name || !title) return;
+
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Sending...';
+            submitBtn.style.opacity = '0.7';
+            submitBtn.disabled = true;
+
+            try {
+                // FormSubmit allows completely backendless email routing 
+                const response = await fetch("https://formsubmit.co/ajax/contact@amit-kushwaha.in", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        _subject: `New Feedback: ${title}`,
+                        name: name,
+                        message: message
+                    })
+                });
+
+                if (response.ok) {
+                    nameInput.value = '';
+                    titleInput.value = '';
+                    messageInput.value = '';
+                    successMsg.style.display = 'block';
+
+                    // After 2.5 seconds, hide success message and automatically close the modal
+                    setTimeout(() => {
+                        successMsg.style.display = 'none';
+                        closeModal();
+                    }, 2500);
+                } else {
+                    alert('Could not send feedback at this time. Please try again later.');
+                }
+            } catch (error) {
+                console.error('Feedback Error:', error);
+                alert('Connection error. Please check your internet connection and try again.');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.style.opacity = '1';
+                submitBtn.disabled = false;
+            }
+        });
+    }
 
 });

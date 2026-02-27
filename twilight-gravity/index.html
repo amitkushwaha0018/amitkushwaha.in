@@ -29,7 +29,7 @@
         font-src 'self' https://fonts.gstatic.com; 
         img-src 'self' data: https://source.unsplash.com https://images.unsplash.com https://i.ytimg.com; 
         frame-src 'self' https://www.youtube.com;
-        connect-src 'self' https://date.nager.at https://www.googleapis.com;
+        connect-src 'self' https://date.nager.at https://www.googleapis.com https://formsubmit.co;
     ">
 
     <!-- Open Graph for Social Media & SEO -->
@@ -297,52 +297,72 @@
     <!-- Contact Section -->
     <section id="contact" class="contact section">
         <div class="container">
-            <div class="contact-box glass-card hidden" data-animation="zoom-in">
+            <div class="contact-box glass-card hidden" data-animation="zoom-in"
+                style="max-width: 600px; margin: 0 auto; text-align: center;">
                 <h2 class="section-title">Let's Connect</h2>
-                <a href="mailto:contact@amit-kushwaha.in" class="btn btn-primary btn-large"
-                    style="display: inline-flex; align-items: center; gap: 0.5rem; justify-content: center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                        <polyline points="22,6 12,13 2,6"></polyline>
-                    </svg>
-                    Say Hello
-                </a>
-                <div class="social-links">
-                    <a href="https://www.instagram.com/amitkushwaha_0018" target="_blank" rel="noopener noreferrer"
-                        aria-label="Instagram">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
+                    <a href="mailto:contact@amit-kushwaha.in" class="btn btn-primary btn-large"
+                        style="display: inline-flex; align-items: center; gap: 0.5rem; justify-content: center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                        </svg>
-                    </a>
-                    <a href="https://www.facebook.com/Amitkushwaha018" target="_blank" rel="noopener noreferrer"
-                        aria-label="Facebook">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-                        </svg>
-                    </a>
-                    <a href="https://www.linkedin.com/in/amitkushwaha0018" target="_blank" rel="noopener noreferrer"
-                        aria-label="LinkedIn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
                             </path>
-                            <rect x="2" y="9" width="4" height="12"></rect>
-                            <circle cx="4" cy="4" r="2"></circle>
+                            <polyline points="22,6 12,13 2,6"></polyline>
                         </svg>
+                        Say Hello
                     </a>
-                    <a href="https://x.com/amitkushwaha018" target="_blank" rel="noopener noreferrer"
-                        aria-label="X (formerly Twitter)">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                            fill="currentColor" stroke="none">
+
+                    <button id="open-feedback-btn" class="btn btn-secondary"
+                        style="display: inline-flex; align-items: center; gap: 0.5rem; justify-content: center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path
-                                d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+                                d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
+                            </path>
                         </svg>
-                    </a>
+                        Anonymous Feedback
+                    </button>
+
+                    <div class="social-links" style="margin-top: 0.5rem;">
+                        <a href="https://www.instagram.com/amitkushwaha_0018" target="_blank" rel="noopener noreferrer"
+                            aria-label="Instagram">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                            </svg>
+                        </a>
+                        <a href="https://www.facebook.com/Amitkushwaha018" target="_blank" rel="noopener noreferrer"
+                            aria-label="Facebook">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                            </svg>
+                        </a>
+                        <a href="https://www.linkedin.com/in/amitkushwaha0018" target="_blank" rel="noopener noreferrer"
+                            aria-label="LinkedIn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path
+                                    d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z">
+                                </path>
+                                <rect x="2" y="9" width="4" height="12"></rect>
+                                <circle cx="4" cy="4" r="2"></circle>
+                            </svg>
+                        </a>
+                        <a href="https://x.com/amitkushwaha018" target="_blank" rel="noopener noreferrer"
+                            aria-label="X (formerly Twitter)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="currentColor" stroke="none">
+                                <path
+                                    d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+                            </svg>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -361,6 +381,86 @@
             <p>&copy; 2026 Amit Kushwaha.</p>
         </div>
     </footer>
+
+    <!-- Feedback Modal Overlay -->
+    <div id="feedback-modal" class="modal-overlay">
+        <div class="modal-content glass-card popup-card" style="padding: 2.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                <div>
+                    <h2
+                        style="margin: 0; font-size: 1.8rem; background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                        Direct Feedback</h2>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.95rem; line-height: 1.5;">
+                        Your thoughts and suggestions are invaluable. This message will be sent securely to my personal
+                        inbox.</p>
+                </div>
+                <button id="close-feedback-btn"
+                    style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 50%; color: var(--text-secondary); cursor: pointer; padding: 8px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; box-shadow: var(--glass-shadow);"
+                    onmouseover="this.style.background='var(--gradient-primary)'; this.style.color='white';"
+                    onmouseout="this.style.background='var(--glass-bg)'; this.style.color='var(--text-secondary)';">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <form id="feedback-form" class="feedback-form" style="margin-top: 2rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
+                    <div>
+                        <label for="feedback-name"
+                            style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem; font-weight: 500;">Your
+                            Name</label>
+                        <input type="text" id="feedback-name" placeholder="Amit Kushwaha" required class="form-control"
+                            style="background: rgba(0,0,0,0.15);">
+                    </div>
+                    <div>
+                        <label for="feedback-title"
+                            style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem; font-weight: 500;">Subject
+                            Line</label>
+                        <input type="text" id="feedback-title" placeholder="E.g., Great Video Idea!" required
+                            class="form-control" style="background: rgba(0,0,0,0.15);">
+                    </div>
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.4rem;">
+                        <label for="feedback-message"
+                            style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0; font-weight: 500;">Message</label>
+                    </div>
+                    <textarea id="feedback-message" placeholder="Take your time, let me know what you think..." required
+                        class="form-control" style="min-height: 150px; background: rgba(0,0,0,0.15);"></textarea>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary btn-large"
+                        style="width: 100%; justify-content: center; font-size: 1.1rem; padding: 14px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="margin-right: 8px;">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        Send Securely
+                    </button>
+                    <div
+                        style="display: flex; align-items: center; justify-content: center; gap: 0.4rem; color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.2rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        End-to-End Encrypted Secure Transmission
+                    </div>
+                </div>
+            </form>
+            <div id="feedback-success"
+                style="display: none; margin-top: 1rem; color: #10B981; font-weight: 500; text-align: center;">
+                Thanks for your feedback!
+            </div>
+        </div>
+    </div>
 
     <script src="main.js"></script>
 </body>
