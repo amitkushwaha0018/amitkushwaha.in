@@ -184,6 +184,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Show Feedback Button only when Contact section is visible
+    const floatingFeedbackBtn = document.getElementById('open-feedback-btn');
+    const contactSection = document.getElementById('contact');
+    if (floatingFeedbackBtn && contactSection) {
+        const feedbackBtnObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    floatingFeedbackBtn.style.opacity = '0.92';
+                    floatingFeedbackBtn.style.pointerEvents = 'auto';
+                } else {
+                    floatingFeedbackBtn.style.opacity = '0';
+                    floatingFeedbackBtn.style.pointerEvents = 'none';
+                }
+            });
+        }, { threshold: 0.1 });
+        feedbackBtnObserver.observe(contactSection);
+    }
+
     // 3. ScrollSpy & Mobile Menu Logic
     const sections = document.querySelectorAll('section');
     const navLinks = document.querySelectorAll('.nav-links a');
@@ -1000,21 +1018,27 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = true;
 
             try {
-                // Web3Forms API Delivery
-                const formData = new FormData(feedbackForm);
-                const object = Object.fromEntries(formData);
-                const json = JSON.stringify(object);
+                // Web3Forms API - Manually built payload for reliability
+                const payload = {
+                    access_key: "8249fc4b-f5a7-440f-9319-6943e21f01a4",
+                    subject: "New Portfolio Feedback: " + title,
+                    name: name,
+                    message: message,
+                    botcheck: ""
+                };
 
                 const response = await fetch("https://api.web3forms.com/submit", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        Accept: "application/json"
+                        "Accept": "application/json"
                     },
-                    body: json
+                    body: JSON.stringify(payload)
                 });
 
-                if (response.ok) {
+                const result = await response.json();
+
+                if (result.success) {
                     nameInput.value = '';
                     titleInput.value = '';
                     messageInput.value = '';
@@ -1025,13 +1049,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         closeModal();
                     }, 2500);
                 } else {
-                    const result = await response.json();
-                    console.error("Web3Forms Error:", result);
-                    alert("Delivery Error: " + (result.message || "Please check your Access Key and try again."));
+                    alert('Error: ' + (result.message || 'Unknown error. Please try again.'));
                 }
             } catch (error) {
                 console.error('Feedback Error:', error);
-                alert('Connection error. Please check your internet connection and try again.');
+                alert('Error: ' + error.message);
             } finally {
                 submitBtn.textContent = originalText;
                 submitBtn.style.opacity = '1';
