@@ -896,4 +896,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 17. Security & Anti-Scraping Shield
+    // Block Right Click (Context Menu)
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Block Common Developer Keyboard Shortcuts
+    document.addEventListener('keydown', e => {
+        // F12
+        if (e.key === 'F12') {
+            e.preventDefault();
+        }
+        // Ctrl+Shift+I / Cmd+Option+I (DevTools)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+            e.preventDefault();
+        }
+        // Ctrl+Shift+J / Cmd+Option+J (Console)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
+            e.preventDefault();
+        }
+        // Ctrl+U / Cmd+U (View Source)
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'U' || e.key === 'u')) {
+            e.preventDefault();
+        }
+        // Ctrl+S / Cmd+S (Save Page)
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'S' || e.key === 's')) {
+            e.preventDefault();
+        }
+    });
+
 });
