@@ -645,20 +645,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 const apiDate = holiday.date.substring(5); // Extract MM-DD from YYYY-MM-DD
                 const name = holiday.localName || holiday.name;
 
-                // Intelligently assign a keyword and a trio of premium mini-images for the header
+                // Intelligently assign a keyword for the premium mini-images
                 let keyword = name.split(' ')[0]; // E.g. "Diwali"
 
-                // Set default beautiful fallback icons in case a specific festival isn't mapped
-                let icons = ["assets/festivals/india_3.png", "assets/festivals/diwali_2.png", "assets/festivals/diwali_3.png"];
-
                 const lowerName = name.toLowerCase();
-                if (lowerName.includes("diwali")) { keyword = "diwali,lamp"; icons = ["assets/festivals/diwali_1.png", "assets/festivals/diwali_2.png", "assets/festivals/diwali_3.png"]; }
-                else if (lowerName.includes("holi")) { keyword = "holi,colors"; icons = ["assets/festivals/holi.png", "assets/festivals/holi_2.png", "assets/festivals/holi_3.png"]; }
-                else if (lowerName.includes("republic") || lowerName.includes("independence")) { keyword = "india,flag"; icons = ["assets/festivals/india.png", "assets/festivals/india_2.png", "assets/festivals/india_3.png"]; }
-                else if (lowerName.includes("raksha")) { keyword = "rakhi,thread"; icons = ["assets/festivals/diwali_3.png", "assets/festivals/india_3.png", "assets/festivals/diwali_1.png"]; }
-                else if (lowerName.includes("sankranti")) { keyword = "kite,festival"; icons = ["assets/festivals/holi.png", "assets/festivals/diwali_2.png", "assets/festivals/india_3.png"]; }
-                else if (lowerName.includes("christmas")) { keyword = "christmas,tree"; icons = ["assets/festivals/diwali_2.png", "assets/festivals/diwali_3.png", "assets/festivals/india_3.png"]; }
-                else if (lowerName.includes("year")) { keyword = "fireworks,newyear"; icons = ["assets/festivals/diwali_2.png", "assets/festivals/diwali_3.png", "assets/festivals/india_2.png"]; }
+                if (lowerName.includes("diwali")) { keyword = "diwali,lamp"; }
+                else if (lowerName.includes("holi")) { keyword = "holi,colors"; }
+                else if (lowerName.includes("republic") || lowerName.includes("independence")) { keyword = "india,flag"; }
+                else if (lowerName.includes("raksha")) { keyword = "rakhi,thread"; }
+                else if (lowerName.includes("sankranti")) { keyword = "kite,festival"; }
+                else if (lowerName.includes("christmas")) { keyword = "christmas,tree"; }
+                else if (lowerName.includes("year")) { keyword = "fireworks,newyear"; }
+
+                // Automatically fetch 3 gorgeous, unique AI/Unsplash photos for the header
+                let icons = [
+                    `https://source.unsplash.com/100x100/?${keyword}&sig=1`,
+                    `https://source.unsplash.com/100x100/?${keyword}&sig=2`,
+                    `https://source.unsplash.com/100x100/?${keyword}&sig=3`
+                ];
 
                 festivals[apiDate] = {
                     name: name,
@@ -720,17 +724,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
 
                 activeFestival.icons.forEach((iconChar, index) => {
-                    if (iconChar.endsWith('.png') || iconChar.endsWith('.jpg')) {
+                    if (iconChar.startsWith('http') || iconChar.endsWith('.png') || iconChar.endsWith('.jpg')) {
                         const img = document.createElement('img');
                         img.src = iconChar;
                         img.alt = "Festival Element";
                         img.style.cssText = `
-                            width: 25px;
-                            height: 25px;
+                            width: 28px;
+                            height: 28px;
                             border-radius: 50%;
                             object-fit: cover;
+                            border: 2px solid var(--glass-border);
+                            background: var(--bg-secondary);
                             animation: pulse ${2 + (index * 0.5)}s infinite;
-                            filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.6));
+                            filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.4));
                             user-select: none;
                         `;
                         iconContainer.appendChild(img);

@@ -466,15 +466,17 @@ button {
     width: 70%;
 }
 
-/* Expand the middle bar when hovering over the menu button */
-.hamburger:hover .bar:nth-child(2) {
-    width: 100%;
-    background-color: var(--accent-color);
-}
+/* Expand the middle bar when hovering over the menu button (Desktop only) */
+@media (hover: hover) {
+    .hamburger:hover .bar:nth-child(2) {
+        width: 100%;
+        background-color: var(--accent-color);
+    }
 
-.hamburger.active:hover .bar:nth-child(2) {
-    /* Don't show hover effect when it's already an X */
-    width: 0;
+    .hamburger.active:hover .bar:nth-child(2) {
+        /* Don't show hover effect when it's already an X */
+        width: 0;
+    }
 }
 
 .hamburger.active .bar:nth-child(1) {
