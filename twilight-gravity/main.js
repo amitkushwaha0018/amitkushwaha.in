@@ -167,14 +167,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (saveToStorage) {
+            // User manually chose - save both the theme AND mark as a manual override
             localStorage.setItem('theme', theme);
+            localStorage.setItem('theme_override', 'true');
         }
     };
 
     // Listen for real-time system theme changes
     window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
-        // Only auto-switch if the user hasn't explicitly saved a manual preference
-        if (!localStorage.getItem('theme')) {
+        // Only auto-switch if the user has NOT explicitly set a manual preference
+        const isUserOverride = localStorage.getItem('theme_override') === 'true';
+        if (!isUserOverride) {
             setTheme(e.matches ? 'light' : 'dark', false);
         }
     });
@@ -520,6 +523,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const ytChannelIdStats = 'UCUisfQ3CLN_7sFl7kMtTD9g'; // User's Channel ID
         const apiKeyStats = 'AIzaSyCYe6pPDE_tbum_qSIP3xij7oO2dVZrVf0'; // User API Key
 
+        // Track last known values for change detection
+        let lastSubs = 0, lastViews = 0;
+
+        const fmt = (n) => n.toLocaleString('en-IN');
+
+        const animateTo = (el, from, to) => {
+            if (!el || from === to) return;
+            const diff = to - from;
+            const steps = 30;
+            let step = 0;
+            const interval = setInterval(() => {
+                step++;
+                const val = Math.round(from + (diff * step / steps));
+                el.textContent = fmt(val);
+                if (step >= steps) {
+                    clearInterval(interval);
+                    el.textContent = fmt(to);
+                    el.classList.remove('tick-pop');
+                    void el.offsetWidth;
+                    el.classList.add('tick-pop');
+                }
+            }, 30);
+        };
+
         const fetchLiveStats = async () => {
             try {
                 const response = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${ytChannelIdStats}&key=${apiKeyStats}`);
@@ -528,15 +555,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data && data.items && data.items.length > 0) {
                     const stats = data.items[0].statistics;
 
-                    // Update the data-target attributes with real live data
+                    const newSubs = parseInt(stats.subscriberCount || 0);
+                    const newViews = parseInt(stats.viewCount || 0);
+
+                    // Update stats section counters
                     counters[0].setAttribute('data-target', stats.subscriberCount || 0);
                     counters[1].setAttribute('data-target', stats.viewCount || 0);
                     counters[2].setAttribute('data-target', stats.videoCount || 0);
+
+                    const liveSubs = document.getElementById('yt-live-subs');
+                    const liveViews = document.getElementById('yt-live-views');
+
+                    // First load: just display
+                    if (lastSubs === 0) {
+                        if (liveSubs) liveSubs.textContent = fmt(newSubs);
+                        if (liveViews) liveViews.textContent = fmt(newViews);
+                    } else {
+                        // Animate when value changes (like YT Studio)
+                        animateTo(liveSubs, lastSubs, newSubs);
+                        animateTo(liveViews, lastViews, newViews);
+                    }
+
+                    lastSubs = newSubs;
+                    lastViews = newViews;
                 }
             } catch (error) {
                 console.error('Error fetching live YouTube stats:', error);
             }
         };
+
+        // Fetch immediately, then every 2 minutes (like YouTube Studio refresh rate)
+        fetchLiveStats();
+        setInterval(fetchLiveStats, 2 * 60 * 1000);
+
 
         const speed = 150; // Delay smoother 
 
@@ -949,6 +1000,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
+
     // 17. Security & Anti-Scraping Shield
     // Block Right Click (Context Menu)
     document.addEventListener('contextmenu', e => e.preventDefault());
@@ -989,7 +1042,8 @@ document.addEventListener('DOMContentLoaded', () => {
         openFeedbackBtn.addEventListener('click', () => {
             feedbackModal.classList.add('active');
             document.body.classList.add('modal-open');
-            // Forcefully remove any lingering hover state just in case
+            // Update URL to /feedback like a subdirectory
+            history.pushState({ feedback: true }, '', '/feedback');
             const cursor = document.getElementById('custom-cursor');
             if (cursor) cursor.classList.remove('hover');
 
@@ -1001,6 +1055,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const closeModal = () => {
             feedbackModal.classList.remove('active');
             document.body.classList.remove('modal-open');
+            // Restore URL back to original path
+            history.pushState({}, '', '/');
         };
         closeFeedbackBtn.addEventListener('click', closeModal);
 

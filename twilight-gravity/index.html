@@ -3,8 +3,13 @@
 <script>
     (function () {
         try {
-            var theme = localStorage.getItem('theme');
-            if (!theme) {
+            var isUserOverride = localStorage.getItem('theme_override') === 'true';
+            var theme;
+            if (isUserOverride) {
+                // User manually chose a theme - respect their choice
+                theme = localStorage.getItem('theme') || 'dark';
+            } else {
+                // No manual preference - always follow the system
                 theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
             }
             document.documentElement.setAttribute('data-theme', theme);
@@ -142,10 +147,12 @@
         </div>
     </section>
 
+
+
     <!-- Experience Section -->
     <section id="experience" class="experience section">
         <div class="container">
-            <h2 class="section-title hidden" data-animation="fade-up">Professional Journey</h2>
+            <h2 class="section-title hidden" data-animation="fade-up">My Journey</h2>
             <div class="timeline">
                 <div class="timeline-item hidden" data-animation="fade-up-stagger">
                     <div class="timeline-dot"></div>
@@ -271,6 +278,7 @@
                 </a>
             </div>
 
+
             <div class="youtube-grid">
                 <!-- Shorts Column -->
                 <div class="yt-column hidden" data-animation="fade-up-stagger">
@@ -294,6 +302,23 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Live Stat Boxes -->
+            <div class="live-stat-boxes hidden" data-animation="fade-up">
+                <div class="live-stat-box glass-card">
+                    <div class="live-badge"><span class="live-dot"></span> LIVE</div>
+                    <div class="live-stat-icon">👥</div>
+                    <div class="live-stat-number" id="yt-live-subs">—</div>
+                    <div class="live-stat-label">Subscribers</div>
+                </div>
+                <div class="live-stat-box glass-card">
+                    <div class="live-badge"><span class="live-dot"></span> LIVE</div>
+                    <div class="live-stat-icon">👁️</div>
+                    <div class="live-stat-number" id="yt-live-views">—</div>
+                    <div class="live-stat-label">Total Views</div>
+                </div>
+            </div>
+
         </div>
     </section>
     <!-- Contact Section -->
