@@ -27,6 +27,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1200);
     }
 
+    // Clean URL section routing (?section=home → scroll + replaceState to /home)
+    const sectionParam = new URLSearchParams(window.location.search).get('section');
+    if (sectionParam) {
+        const validSections = ['home', 'experience', 'youtube', 'contact', 'stats'];
+        if (validSections.includes(sectionParam)) {
+            window.history.replaceState({}, document.title, '/' + sectionParam);
+            setTimeout(() => {
+                const target = document.getElementById(sectionParam);
+                if (target) target.scrollIntoView({ behavior: 'smooth' });
+            }, 1000);
+        }
+    }
+
     // Custom Cursor Logic
     const cursor = document.getElementById('custom-cursor');
     if (cursor) {
