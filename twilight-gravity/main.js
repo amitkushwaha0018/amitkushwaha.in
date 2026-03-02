@@ -28,15 +28,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Clean URL section routing (?section=home → scroll + replaceState to /home)
-    const sectionParam = new URLSearchParams(window.location.search).get('section');
+    const urlParams = new URLSearchParams(window.location.search);
+    const sectionParam = urlParams.get('section');
+
     if (sectionParam) {
         const validSections = ['home', 'experience', 'youtube', 'contact', 'stats'];
         if (validSections.includes(sectionParam)) {
+            // Clean the URL immediately to just /sectionname
             window.history.replaceState({}, document.title, '/' + sectionParam);
+
+            // Wait for preloader to finish, then aggressively scroll
             setTimeout(() => {
                 const target = document.getElementById(sectionParam);
-                if (target) target.scrollIntoView({ behavior: 'smooth' });
-            }, 1000);
+                if (target) {
+                    // Try smooth scroll first
+                    target.scrollIntoView({ behavior: 'smooth' });
+                    // Failsafe jump if browser interrupts
+                    setTimeout(() => {
+                        if (Math.abs(window.scrollY - target.offsetTop) > 100) {
+                            window.scrollTo({ top: target.offsetTop - 80, behavior: 'auto' });
+                        }
+                    }, 500);
+                }
+            }, 850); // Just after the 800ms preloader
         }
     }
 
