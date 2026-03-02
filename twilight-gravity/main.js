@@ -40,6 +40,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Intercept nav link clicks (/home, /experience etc.) — smooth scroll + clean URL
+    document.querySelectorAll('a[href^="/"]').forEach(link => {
+        const path = link.getAttribute('href'); // e.g. "/home"
+        const section = path.replace('/', '');   // e.g. "home"
+        const validSections = ['home', 'experience', 'youtube', 'contact', 'stats'];
+        if (validSections.includes(section)) {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                const target = document.getElementById(section);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                    window.history.pushState({}, document.title, '/' + section);
+                }
+            });
+        }
+    });
+
     // Custom Cursor Logic
     const cursor = document.getElementById('custom-cursor');
     if (cursor) {
