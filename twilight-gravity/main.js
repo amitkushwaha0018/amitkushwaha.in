@@ -585,38 +585,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data && data.items && data.items.length > 0) {
                     const stats = data.items[0].statistics;
 
-                    const newSubs = parseInt(stats.subscriberCount || 0);
-                    const newViews = parseInt(stats.viewCount || 0);
-
-                    // Update stats section counters
+                    // Update stats section counters with real YouTube data
                     counters[0].setAttribute('data-target', stats.subscriberCount || 0);
                     counters[1].setAttribute('data-target', stats.viewCount || 0);
                     counters[2].setAttribute('data-target', stats.videoCount || 0);
-
-                    const liveSubs = document.getElementById('yt-live-subs');
-                    const liveViews = document.getElementById('yt-live-views');
-
-                    // First load: just display
-                    if (lastSubs === 0) {
-                        if (liveSubs) liveSubs.textContent = fmt(newSubs);
-                        if (liveViews) liveViews.textContent = fmt(newViews);
-                    } else {
-                        // Animate when value changes (like YT Studio)
-                        animateTo(liveSubs, lastSubs, newSubs);
-                        animateTo(liveViews, lastViews, newViews);
-                    }
-
-                    lastSubs = newSubs;
-                    lastViews = newViews;
                 }
             } catch (error) {
-                console.error('Error fetching live YouTube stats:', error);
+                console.error('Error fetching YouTube stats:', error);
             }
         };
 
-        // Fetch immediately, then every 2 minutes (like YouTube Studio refresh rate)
+        // Fetch once on load (Standard API sync, no live Social Blade polling)
         fetchLiveStats();
-        setInterval(fetchLiveStats, 2 * 60 * 1000);
 
 
         const speed = 150; // Delay smoother 
@@ -775,62 +755,53 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fallback test mode: const dateKey = "02-26"; 
         const dateKey = `${currentMonth}-${currentDate}`;
 
-        let festivals = {};
+        let activeFestival = null;
 
         try {
-            // Fetch live Public Holidays for India from a free, no-auth API
-            const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${currentYear}/IN`);
-            if (!response.ok) throw new Error("API Offline");
-            const data = await response.json();
+            // Fetch today's public holidays for India directly from Google Calendar (100% CORS safe & accurate)
+            const calendarId = encodeURIComponent('en.indian#holiday@group.v.calendar.google.com');
+            const ytApiKey = 'AIzaSyCYe6pPDE_tbum_qSIP3xij7oO2dVZrVf0'; // Reuse existing approved API key
 
-            // Map the API data into our dynamic dictionary template
-            data.forEach(holiday => {
-                const apiDate = holiday.date.substring(5); // Extract MM-DD from YYYY-MM-DD
-                const name = holiday.localName || holiday.name;
+            // Format dates (e.g. 2026-10-20T00:00:00Z to 2026-10-20T23:59:59Z)
+            const timeMin = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+            const timeMax = new Date(today.setHours(23, 59, 59, 999)).toISOString();
 
-                // Intelligently assign a keyword for the premium mini-images
-                let keyword = name.split(' ')[0]; // E.g. "Diwali"
+            const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?key=${ytApiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true`);
 
-                const lowerName = name.toLowerCase();
-                if (lowerName.includes("diwali")) { keyword = "diwali,lamp"; }
-                else if (lowerName.includes("holi")) { keyword = "holi,colors"; }
-                else if (lowerName.includes("republic") || lowerName.includes("independence")) { keyword = "india,flag"; }
-                else if (lowerName.includes("raksha")) { keyword = "rakhi,thread"; }
-                else if (lowerName.includes("sankranti")) { keyword = "kite,festival"; }
-                else if (lowerName.includes("christmas")) { keyword = "christmas,tree"; }
-                else if (lowerName.includes("year")) { keyword = "fireworks,newyear"; }
+            if (response.ok) {
+                const data = await response.json();
 
-                // Automatically fetch 3 gorgeous, unique AI/Unsplash photos for the header
-                let icons = [
-                    `https://source.unsplash.com/100x100/?${keyword}&sig=1`,
-                    `https://source.unsplash.com/100x100/?${keyword}&sig=2`,
-                    `https://source.unsplash.com/100x100/?${keyword}&sig=3`
-                ];
+                if (data.items && data.items.length > 0) {
+                    const name = data.items[0].summary; // E.g., "Diwali"
 
-                festivals[apiDate] = {
-                    name: name,
-                    text: `Happy ${name}!`,
-                    icons: icons,
-                    keyword: keyword
-                };
-            });
+                    let keyword = name.split(' ')[0];
+                    const lowerName = name.toLowerCase();
+                    if (lowerName.includes("diwali")) { keyword = "diwali,lamp"; }
+                    else if (lowerName.includes("holi")) { keyword = "holi,colors"; }
+                    else if (lowerName.includes("republic") || lowerName.includes("independence")) { keyword = "india,flag"; }
+                    else if (lowerName.includes("raksha")) { keyword = "rakhi,thread"; }
+                    else if (lowerName.includes("sankranti")) { keyword = "kite,festival"; }
+                    else if (lowerName.includes("christmas")) { keyword = "christmas,tree"; }
+                    else if (lowerName.includes("year")) { keyword = "fireworks,newyear"; }
 
+                    activeFestival = {
+                        name: name,
+                        text: `Happy ${name}!`,
+                        icons: [
+                            `https://source.unsplash.com/100x100/?${keyword}&sig=1`,
+                            `https://source.unsplash.com/100x100/?${keyword}&sig=2`,
+                            `https://source.unsplash.com/100x100/?${keyword}&sig=3`
+                        ],
+                        keyword: keyword
+                    };
+                }
+            }
         } catch (error) {
-            console.log("Festival API offline, using fallback fixed dates.");
-            // Lightweight fallback if the internet API ever goes down
-            festivals = {
-                "01-01": { name: "New Year", text: `Happy New Year! 🎆`, icons: ["🎆", "🥂", "✨"], keyword: "fireworks" },
-                "01-14": { name: "Makar Sankranti", text: "Happy Makar Sankranti! 🪁", icons: ["🪁", "☀️", "☁️"], keyword: "kite" },
-                "01-26": { name: "Republic Day", text: "Happy Republic Day! 🇮🇳", icons: ["🇮🇳", "🫡", "🕊️"], keyword: "india" },
-                "08-15": { name: "Independence Day", text: "Happy Independence Day! 🇮🇳", icons: ["🇮🇳", "🫡", "🕊️"], keyword: "india" },
-                "12-25": { name: "Christmas", text: "Merry Christmas! 🎄", icons: ["🎄", "🎁", "❄️"], keyword: "christmas" }
-            };
+            console.error("Google Calendar Festival API failed:", error);
         }
 
         // --- TEST OVERRIDE FOR DEVELOPMENT ---
-        // festivals["02-26"] = { name: "Holi", text: "Happy Holi! 🔴", icons: ["🔴", "🟢", "🔵"], keyword: "holi,colors" };
-
-        const activeFestival = festivals[dateKey];
+        // activeFestival = { name: "Holi", text: "Happy Holi! 🔴", icons: ["https://source.unsplash.com/100x100/?holi,colors&sig=1", "https://source.unsplash.com/100x100/?holi,colors&sig=2", "https://source.unsplash.com/100x100/?holi,colors&sig=3"], keyword: "holi,colors" };
 
         if (activeFestival) {
             // 1. Override the Hero Text Greeting (Replaces "Good morning")
@@ -917,7 +888,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     
                     <div style="padding: 2rem;">
-                        <h2 style="margin-bottom: 0.5rem; color: var(--accent-color);">${activeFestival.text}</h2>
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 0.5rem;">
+                            <img src="${activeFestival.icons[0]}" alt="Icon" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">
+                            <h2 style="margin: 0; color: var(--accent-color);">${activeFestival.text}</h2>
+                        </div>
                         <p style="color: var(--text-secondary); font-size: 0.95rem;">Wishing you joy, success, and prosperity on this special day!</p>
                     </div>
                 </div>
