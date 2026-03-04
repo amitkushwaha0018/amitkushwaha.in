@@ -769,28 +769,32 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fallback test mode: const dateKey = "02-26"; 
         const dateKey = `${currentMonth}-${currentDate}`;
 
-        // Generate 3 random icons based on a keyword using LoremFlickr (Active free alternative to Unsplash Source)
-        const getIcons = (kw) => {
-            // Clean keywords for LoremFlickr (e.g. "holi,colors" -> "holi,colors")
-            const cleanKw = kw.replace(/ /g, '');
+        // Generate 3 unique, distinct, highly relevant icons using Bing Image Search Thumbnail API by accepting 3 different queries
+        const getIcons = (q1, q2, q3) => {
             return [
-                `https://loremflickr.com/100/100/${cleanKw}?random=1`,
-                `https://loremflickr.com/100/100/${cleanKw}?random=2`,
-                `https://loremflickr.com/100/100/${cleanKw}?random=3`
+                `https://tse1.mm.bing.net/th?q=${encodeURIComponent(q1)}&w=100&h=100&c=7&rs=1&p=0`,
+                `https://tse2.mm.bing.net/th?q=${encodeURIComponent(q2)}&w=100&h=100&c=7&rs=1&p=0`,
+                `https://tse3.mm.bing.net/th?q=${encodeURIComponent(q3)}&w=100&h=100&c=7&rs=1&p=0`
             ];
         };
 
-        // Lightweight dictionary of Indian Festivals (Reliable local fallback, no CORS issues & no API restrictions)
+        // Fetch a premium cinematic banner photo for the popup
+        const getBanner = (kw) => {
+            const cleanKw = encodeURIComponent(kw + " high quality");
+            return `https://tse4.mm.bing.net/th?q=${cleanKw}&w=600&h=400&c=7&rs=1&p=0`;
+        };
+
+        // Lightweight dictionary of Indian Festivals (Emojis removed, replaced completely by mini-images)
         let festivals = {
-            "01-01": { name: "New Year", text: `Happy New Year! 🎆`, icons: getIcons("fireworks"), keyword: "fireworks" },
-            "01-14": { name: "Makar Sankranti", text: "Happy Makar Sankranti! 🪁", icons: getIcons("kite"), keyword: "kite" },
-            "01-26": { name: "Republic Day", text: "Happy Republic Day! 🇮🇳", icons: getIcons("india"), keyword: "india" },
-            "03-14": { name: "Holi", text: "Happy Holi! 🔴", icons: getIcons("holi,colors"), keyword: "holi,colors" },
-            "08-15": { name: "Independence Day", text: "Happy Independence Day! 🇮🇳", icons: getIcons("india"), keyword: "india" },
-            "08-09": { name: "Raksha Bandhan", text: "Happy Raksha Bandhan! 🧵", icons: getIcons("rakhi"), keyword: "rakhi" },
-            "10-20": { name: "Diwali", text: "Happy Diwali! 🪔", icons: getIcons("diwali,lamp"), keyword: "diwali,lamp" },
-            "12-25": { name: "Christmas", text: "Merry Christmas! 🎄", icons: getIcons("christmas"), keyword: "christmas" },
-            "03-04": { name: "Holi", text: "Happy Holi! 🔴", icons: getIcons("holi,colors"), keyword: "holi,colors" }, // Today's date hotfix
+            "01-01": { name: "New Year", text: "Happy New Year!", icons: getIcons("New year countdown clock", "New year fireworks sky", "New year celebration balloons"), banner: getBanner("New Year Fireworks celebration") },
+            "01-14": { name: "Makar Sankranti", text: "Happy Makar Sankranti!", icons: getIcons("Makar Sankranti colorful kites", "Tilgul sweets plate", "Kite flying boy silhouette"), banner: getBanner("Makar Sankranti kite flying festival") },
+            "01-26": { name: "Republic Day", text: "Happy Republic Day!", icons: getIcons("India Gate Delhi parade", "Indian flag waving close up", "Republic day tricolor balloons"), banner: getBanner("India Republic Day celebration parade flag") },
+            "03-14": { name: "Holi", text: "Happy Holi!", icons: getIcons("Holi red pink powder hands", "Holi gulal thali plate", "Holi water balloons colors"), banner: getBanner("Holi festival colorful powder celebration") },
+            "08-15": { name: "Independence Day", text: "Happy Independence Day!", icons: getIcons("Red fort august 15 flag", "Indian flag waving sky", "Independence day troops march"), banner: getBanner("India Independence Day Flag highly detailed") },
+            "08-09": { name: "Raksha Bandhan", text: "Happy Raksha Bandhan!", icons: getIcons("Raksha bandhan beautiful rakhi thread", "Brother sister rakhi tie", "Rakhi pooja thali sweets"), banner: getBanner("Raksha Bandhan premium rakhi") },
+            "10-20": { name: "Diwali", text: "Happy Diwali!", icons: getIcons("Diwali burning diya clay", "Diwali firecrackers night sky", "Diwali rangoli colors design"), banner: getBanner("Diwali beautiful glowing diyas celebration") },
+            "12-25": { name: "Christmas", text: "Merry Christmas!", icons: getIcons("Christmas decorated pine tree", "Santa claus gifts bag", "Christmas glowing balls ornaments"), banner: getBanner("Christmas tree festive background") },
+            "03-04": { name: "Holi", text: "Happy Holi!", icons: getIcons("Holi red pink powder hands", "Holi gulal thali plate", "Holi water balloons colors"), banner: getBanner("Holi festival colorful powder celebration") }, // Today's date hotfix
         };
 
         const activeFestival = festivals[dateKey];
@@ -798,7 +802,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeFestival) {
             // 1. Override the Hero Text Greeting (Replaces "Good morning")
             if (greetingElement) {
-                greetingElement.textContent = activeFestival.text;
+                // Remove raw text textContent, setup HTML to inline an image next to the text
+                greetingElement.innerHTML = `<span style="display: inline-flex; align-items: center; gap: 10px;">
+                    ${activeFestival.text} 
+                    <img src="${activeFestival.icons[0]}" alt="Festival Icon" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color); filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.4)); animation: pulse 3s infinite;">
+                </span>`;
 
                 // Add a subtle celebratory glow and brand color to the text
                 greetingElement.style.color = 'var(--accent-color)';
@@ -810,9 +818,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 imSpan.style.color = 'var(--text-primary)';
                 imSpan.style.fontWeight = '400';
                 imSpan.style.textShadow = 'none';
-                imSpan.style.marginLeft = '10px';
+                imSpan.style.marginLeft = '12px';
                 imSpan.textContent = "I'm";
-                greetingElement.appendChild(imSpan);
+                greetingElement.querySelector('span').appendChild(imSpan);
             }
 
             // 2. Inject 3 distinct Navbar Icons next to the theme toggle
@@ -830,43 +838,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
 
                 activeFestival.icons.forEach((iconChar, index) => {
-                    if (iconChar.startsWith('http') || iconChar.endsWith('.png') || iconChar.endsWith('.jpg')) {
-                        const img = document.createElement('img');
-                        img.src = iconChar;
-                        img.alt = "Festival Element";
-                        img.style.cssText = `
-                            width: 28px;
-                            height: 28px;
-                            border-radius: 50%;
-                            object-fit: cover;
-                            border: 2px solid var(--glass-border);
-                            background: var(--bg-secondary);
-                            animation: pulse ${2 + (index * 0.5)}s infinite;
-                            filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.4));
-                            user-select: none;
-                        `;
-                        iconContainer.appendChild(img);
-                    } else {
-                        const i = document.createElement('span');
-                        i.textContent = iconChar;
-                        i.style.cssText = `
-                            font-size: 1.2rem;
-                            animation: pulse ${2 + (index * 0.5)}s infinite;
-                            filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.6));
-                            cursor: default;
-                            user-select: none;
-                        `;
-                        iconContainer.appendChild(i);
-                    }
+                    const img = document.createElement('img');
+                    img.src = iconChar;
+                    img.alt = "Festival Element";
+                    img.style.cssText = `
+                        width: 38px;
+                        height: 38px;
+                        border-radius: 50%;
+                        object-fit: cover;
+                        border: 2px solid var(--glass-border);
+                        background: var(--bg-secondary);
+                        animation: pulse ${2 + (index * 0.5)}s infinite;
+                        filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.4));
+                        user-select: none;
+                    `;
+                    iconContainer.appendChild(img);
                 });
 
                 navActions.insertBefore(iconContainer, themeToggle);
             }
 
             // 3. Inject the Premium Glassmorphism Popup Overlay with Dynamic Auto-Image
-            // Use LoremFlickr as the Unsplash Source alternative
-            const cleanBannerKw = activeFestival.keyword.replace(/ /g, '');
-            const imageUrl = `https://loremflickr.com/600/400/${cleanBannerKw},celebration?random=4`;
+            // Use Direct Premium Image URL mapped to the specific festival for 100% reliability
+            const imageUrl = activeFestival.banner;
 
             const festiveOverlay = document.createElement('div');
             festiveOverlay.className = 'festive-overlay active';
@@ -881,9 +875,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     
                     <div style="padding: 2rem;">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 0.5rem;">
-                            <img src="${activeFestival.icons[0]}" alt="Icon" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">
-                            <h2 style="margin: 0; color: var(--accent-color);">${activeFestival.text}</h2>
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <img src="${activeFestival.icons[1]}" alt="Icon Left" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">
+                                <h2 style="margin: 0; color: var(--accent-color);">${activeFestival.text}</h2>
+                            </div>
+                            <img src="${activeFestival.icons[2]}" alt="Icon Right" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">
                         </div>
                         <p style="color: var(--text-secondary); font-size: 0.95rem;">Wishing you joy, success, and prosperity on this special day!</p>
                     </div>
@@ -893,9 +890,631 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Close logic for popup
             const closeBtn = document.getElementById('festive-close');
+
+            // Highly Realistic Canvas Particle Simulation Engine (Runs Only on Home Page)
+            const launchFestivalAnimations = (festival) => {
+                if (!document.getElementById('home')) return; // Strictly only run on home page
+
+                const canvas = document.createElement('canvas');
+                canvas.style.position = 'fixed';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                canvas.style.width = '100vw';
+                canvas.style.height = '100vh';
+                canvas.style.pointerEvents = 'none'; // Click through
+                canvas.style.zIndex = '9999';
+                document.body.appendChild(canvas);
+
+                const ctx = canvas.getContext('2d');
+                let width = window.innerWidth;
+                let height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+
+                let particles = [];
+                let animationId;
+                let flashAlpha = 0; // For Diwali lighting effect
+
+                // Allow resizing during animation
+                window.addEventListener('resize', () => {
+                    width = window.innerWidth;
+                    height = window.innerHeight;
+                    canvas.width = width;
+                    canvas.height = height;
+                });
+
+                const fName = festival.name;
+
+                if (fName === "Diwali" || fName === "New Year") {
+                    // --- REALISTIC FIREWORKS ENGINE ---
+                    class Firework {
+                        constructor() {
+                            this.x = Math.random() * (width * 0.8) + (width * 0.1);
+                            this.y = height;
+                            this.sx = (Math.random() - 0.5) * 3;
+                            this.sy = -(Math.random() * 4 + 10); // Shoot up
+                            this.size = 2.5;
+                            this.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+                            this.exploded = false;
+                            this.particles = [];
+                        }
+                        update() {
+                            if (!this.exploded) {
+                                this.x += this.sx;
+                                this.y += this.sy;
+                                this.sy += 0.15; // Gravity
+                                // Trigger explosion near top or randomly
+                                if (this.sy >= -1 || this.y < height * 0.2 + Math.random() * 100) {
+                                    this.exploded = true;
+                                    flashAlpha = 0.6; // Trigger global flash
+                                    const particleCount = 80 + Math.random() * 40;
+                                    for (let i = 0; i < particleCount; i++) {
+                                        this.particles.push(new Particle(this.x, this.y, this.color));
+                                    }
+                                }
+                            } else {
+                                for (let i = this.particles.length - 1; i >= 0; i--) {
+                                    const p = this.particles[i];
+                                    p.update();
+                                    if (p.alpha <= 0) this.particles.splice(i, 1);
+                                }
+                            }
+                        }
+                        draw() {
+                            if (!this.exploded) {
+                                ctx.fillStyle = '#FFAA00'; // Rocket trail core
+                                ctx.beginPath();
+                                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                                ctx.fill();
+                            } else {
+                                for (const p of this.particles) p.draw();
+                            }
+                        }
+                    }
+
+                    class Particle {
+                        constructor(x, y, color) {
+                            this.x = x;
+                            this.y = y;
+                            const angle = Math.random() * Math.PI * 2;
+                            const speed = Math.random() * 6 + 1;
+                            this.sx = Math.cos(angle) * speed;
+                            this.sy = Math.sin(angle) * speed;
+                            this.size = Math.random() * 2 + 1;
+                            this.baseColor = color;
+                            // Randomize particle colors slightly around base spark
+                            this.color = Math.random() > 0.8 ? '#FFFFFF' : this.baseColor;
+                            this.alpha = 1;
+                            this.decay = Math.random() * 0.015 + 0.01;
+                            this.friction = 0.95;
+                        }
+                        update() {
+                            this.sx *= this.friction;
+                            this.sy *= this.friction;
+                            this.sy += 0.05; // Gravity pull on sparks
+                            this.x += this.sx;
+                            this.y += this.sy;
+                            this.alpha -= this.decay;
+                        }
+                        draw() {
+                            ctx.save();
+                            ctx.globalAlpha = Math.max(0, this.alpha);
+                            ctx.fillStyle = this.color;
+                            ctx.shadowBlur = 10;
+                            ctx.shadowColor = this.color;
+                            ctx.beginPath();
+                            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    }
+
+                    // Launch multiple fireworks staggered
+                    for (let i = 0; i < 7; i++) {
+                        setTimeout(() => particles.push(new Firework()), i * 600 + Math.random() * 300);
+                    }
+
+                    const loop = () => {
+                        // Produce trailing effects
+                        ctx.globalCompositeOperation = 'destination-out';
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                        ctx.fillRect(0, 0, width, height);
+                        ctx.globalCompositeOperation = 'lighter';
+
+                        // Draw Atmospheric Flash
+                        if (flashAlpha > 0) {
+                            ctx.save();
+                            ctx.globalAlpha = flashAlpha;
+                            ctx.fillStyle = '#FFFFFF';
+                            ctx.fillRect(0, 0, width, height);
+                            ctx.restore();
+                            flashAlpha -= 0.04; // Fade out flash quickly
+                        }
+
+                        for (let i = particles.length - 1; i >= 0; i--) {
+                            const fw = particles[i];
+                            fw.update();
+                            fw.draw();
+                            if (fw.exploded && fw.particles.length === 0) particles.splice(i, 1);
+                        }
+                        animationId = requestAnimationFrame(loop);
+                    };
+                    loop();
+
+                } else if (fName === "Holi") {
+                    // --- HYPER-REALISTIC FLYING POWDER / GULAL ENGINE ---
+                    class PowderCloud {
+                        constructor(x, y, isExplosiveCore) {
+                            this.x = x;
+                            this.y = y;
+                            // Chaotic bursting angles
+                            const angle = (Math.random() * Math.PI) + Math.PI; // Upwards semi-circle
+                            // Explosive core particles shoot way faster, outer clouds drift
+                            const speed = isExplosiveCore ? (Math.random() * 40 + 20) : (Math.random() * 15 + 2);
+                            this.sx = Math.cos(angle) * speed;
+                            this.sy = Math.sin(angle) * speed;
+
+                            // Wide range of sizes: tiny concentrated powder hits, to massive lingering clouds
+                            this.size = isExplosiveCore ? (Math.random() * 10 + 2) : (Math.random() * 40 + 10);
+                            this.growthRate = isExplosiveCore ? 0.1 : (Math.random() * 2 + 0.5); // Fast expanding clouds
+
+                            // Vibrant Holi Colors: Pink, Green, Yellow, Blue, Purple
+                            const colors = ['255, 0, 85', '0, 255, 102', '255, 221, 0', '0, 187, 255', '170, 0, 255'];
+                            this.colorRGB = colors[Math.floor(Math.random() * colors.length)];
+                            this.alpha = isExplosiveCore ? 1 : (Math.random() * 0.6 + 0.4); // Core is solid, edges are dusty
+                            this.decay = Math.random() * 0.008 + 0.002; // Very slow fade to simulate lingering dust
+                            // Extreme friction forces fast stops to simulate air hitting light powder
+                            this.friction = isExplosiveCore ? 0.95 : 0.88;
+                        }
+                        update() {
+                            this.x += this.sx;
+                            this.y += this.sy;
+                            this.sx *= this.friction;
+                            this.sy *= this.friction;
+                            this.sy += 0.05; // Slight gravity pull down over time
+                            this.size += this.growthRate; // Expand realistic cloud outward
+                            this.alpha -= this.decay;
+                        }
+                        draw() {
+                            ctx.save();
+                            ctx.globalAlpha = Math.max(0, this.alpha);
+
+                            // Draw realistic soft powder puff using radial gradient for a "dusty" edge
+                            const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+                            // Super bright core, dissipating outer edge
+                            gradient.addColorStop(0, `rgba(${this.colorRGB}, ${this.alpha})`);
+                            gradient.addColorStop(0.3, `rgba(${this.colorRGB}, ${this.alpha * 0.8})`);
+                            gradient.addColorStop(1, `rgba(${this.colorRGB}, 0)`);
+
+                            ctx.fillStyle = gradient;
+                            ctx.beginPath();
+                            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    }
+
+                    // Trigger 5 overlapping chaotic bursts from all over the bottom to simulate a crowd throwing powder
+                    const burstLocations = [width * 0.1, width * 0.3, width * 0.5, width * 0.7, width * 0.9];
+                    burstLocations.forEach((lx, index) => {
+                        setTimeout(() => {
+                            // 300 dusty slow clouds
+                            for (let i = 0; i < 300; i++) particles.push(new PowderCloud(lx, height + 50, false));
+                            // 100 fast explosive core powder clumps
+                            for (let j = 0; j < 100; j++) particles.push(new PowderCloud(lx, height + 50, true));
+                        }, index * 250); // Rapid stagger bursts
+                    });
+
+                    const loop = () => {
+                        ctx.clearRect(0, 0, width, height); // No trails for powder
+                        ctx.globalCompositeOperation = 'screen'; // Blend colors together vibrantly
+                        for (let i = particles.length - 1; i >= 0; i--) {
+                            const p = particles[i];
+                            p.update();
+                            p.draw();
+                            if (p.alpha <= 0) particles.splice(i, 1);
+                        }
+                        animationId = requestAnimationFrame(loop);
+                    };
+                    loop();
+
+                } else if (fName === "Makar Sankranti") {
+                    // --- REALISTIC PAPER KITE ENGINE ---
+                    class Kite {
+                        constructor() {
+                            this.x = Math.random() * width;
+                            this.y = height + 100; // Start below screen
+                            this.size = Math.random() * 15 + 15;
+                            // Bright kite colors
+                            const colors = ['#FF3366', '#33CCFF', '#FFCC00', '#99FF33', '#FF6600'];
+                            this.color = colors[Math.floor(Math.random() * colors.length)];
+                            this.sy = -(Math.random() * 2 + 1.5); // Float up speed varies by kite
+                            this.windOffset = Math.random() * 100;
+                            this.wobbleSpeed = Math.random() * 0.03 + 0.02;
+                            this.tailHistory = []; // Track points for the tail
+                        }
+                        update() {
+                            this.y += this.sy;
+                            // Sine wave for wind sway
+                            this.x += Math.sin(this.y * this.wobbleSpeed + this.windOffset) * 2;
+
+                            // Track previous positions for the tail
+                            this.tailHistory.unshift({ x: this.x, y: this.y });
+                            if (this.tailHistory.length > 15) this.tailHistory.pop();
+                        }
+                        draw() {
+                            ctx.save();
+                            ctx.translate(this.x, this.y);
+
+                            // Tilt kite based on horizontal sway direction
+                            const tilt = Math.cos(this.y * this.wobbleSpeed + this.windOffset) * 0.4;
+                            ctx.rotate(tilt);
+
+                            // Draw traditional diamond kite body
+                            ctx.fillStyle = this.color;
+                            ctx.beginPath();
+                            ctx.moveTo(0, -this.size);     // Top tip
+                            ctx.lineTo(this.size, 0);      // Right corner
+                            ctx.lineTo(0, this.size * 1.5);  // Bottom longer tip
+                            ctx.lineTo(-this.size, 0);     // Left corner
+                            ctx.closePath();
+                            ctx.fill();
+
+                            // Draw central cross sticks
+                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(0, -this.size);
+                            ctx.lineTo(0, this.size * 1.5); // Vertical stick
+                            ctx.moveTo(-this.size, 0);
+                            // Draw curved horizontal stick
+                            ctx.quadraticCurveTo(0, -this.size * 0.3, this.size, 0);
+                            ctx.stroke();
+
+                            ctx.restore();
+
+                            // Draw Kite Tail (Trailing behind)
+                            if (this.tailHistory.length > 5) {
+                                ctx.save();
+                                ctx.strokeStyle = '#FFFFFF';
+                                ctx.lineWidth = 1;
+                                ctx.beginPath();
+                                ctx.moveTo(this.tailHistory[0].x, this.tailHistory[0].y + this.size * 1.5);
+
+                                for (let i = 1; i < this.tailHistory.length; i++) {
+                                    // Make tail wave opposing the wind slightly
+                                    const waveX = this.tailHistory[i].x + Math.sin(i * 0.5) * 5;
+                                    ctx.lineTo(waveX, this.tailHistory[i].y + this.size * 1.5 + (i * 4));
+                                }
+                                ctx.stroke();
+                                ctx.restore();
+                            }
+                        }
+                    }
+
+                    // Release 12 kites staggered
+                    for (let i = 0; i < 12; i++) {
+                        setTimeout(() => particles.push(new Kite()), i * 300);
+                    }
+
+                    const loop = () => {
+                        ctx.clearRect(0, 0, width, height);
+                        for (let i = particles.length - 1; i >= 0; i--) {
+                            const p = particles[i];
+                            p.update();
+                            p.draw();
+                            // If it flies high above screen, remove
+                            if (p.y < -100) particles.splice(i, 1);
+                        }
+                        animationId = requestAnimationFrame(loop);
+                    };
+                    loop();
+
+                } else if (fName === "Christmas") {
+                    // --- REALISTIC PARALLAX SNOWFALL ENGINE ---
+                    class Snowflake {
+                        constructor() {
+                            this.x = Math.random() * width;
+                            this.y = Math.random() * -height; // Start above screen
+                            // Parallax depths (1 is far/slow, 3 is near/fast)
+                            this.z = Math.random() * 2 + 1;
+                            this.size = this.z * 1.5;
+                            this.sy = this.z * 1.2; // Fall faster if closer
+                            this.windOffset = Math.random() * Math.PI * 2;
+                        }
+                        update() {
+                            this.y += this.sy;
+                            // Gentle sine wave drift based on depth
+                            this.x += Math.sin((this.y / 50) + this.windOffset) * (this.z * 0.5);
+                        }
+                        draw() {
+                            ctx.save();
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; // Sharp white
+                            // Blur background snow slightly for depth of field
+                            if (this.z < 1.5) {
+                                ctx.shadowBlur = 3;
+                                ctx.shadowColor = 'white';
+                                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; // Faded
+                            }
+                            ctx.beginPath();
+                            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    }
+
+                    // Heavy snowfall
+                    for (let i = 0; i < 300; i++) particles.push(new Snowflake());
+
+                    const loop = () => {
+                        ctx.clearRect(0, 0, width, height);
+                        for (let i = particles.length - 1; i >= 0; i--) {
+                            const p = particles[i];
+                            p.update();
+                            p.draw();
+                            // If snow hits ground, respawn it at the top for continuous flow
+                            if (p.y > height + 20) {
+                                p.y = -20;
+                                p.x = Math.random() * width;
+                            }
+                        }
+                        animationId = requestAnimationFrame(loop);
+                    };
+                    loop();
+
+                } else if (fName === "Republic Day" || fName === "Independence Day") {
+                    // --- REALISTIC TRICOLOR BALLOON & CONFETTI ENGINE ---
+                    class TricolorBalloon {
+                        constructor() {
+                            this.x = Math.random() * width;
+                            this.y = height + 100; // Start below screen
+                            this.size = Math.random() * 20 + 20; // Balloon size
+
+                            // Indian Flag Colors: Saffron, White, Green
+                            const colors = ['#FF9933', '#FFFFFF', '#138808'];
+                            this.color = colors[Math.floor(Math.random() * colors.length)];
+
+                            this.sy = -(Math.random() * 2 + 2); // Float up speed varies
+                            this.windOffset = Math.random() * 100;
+                            this.wobbleSpeed = Math.random() * 0.02 + 0.01;
+                        }
+                        update() {
+                            this.y += this.sy;
+                            // Gentle sway
+                            this.x += Math.sin(this.y * this.wobbleSpeed + this.windOffset) * 1.5;
+                        }
+                        draw() {
+                            ctx.save();
+                            ctx.translate(this.x, this.y);
+
+                            // Draw Balloon String
+                            ctx.beginPath();
+                            ctx.moveTo(0, this.size);
+                            ctx.quadraticCurveTo(5, this.size + 15, -5, this.size + 30);
+                            ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+
+                            // Draw Balloon Body
+                            ctx.fillStyle = this.color;
+                            ctx.beginPath();
+                            // Slightly elongated balloon shape
+                            ctx.ellipse(0, 0, this.size * 0.85, this.size, 0, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            // Optional: Shiny highlight
+                            ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+                            ctx.beginPath();
+                            ctx.ellipse(-this.size * 0.3, -this.size * 0.4, this.size * 0.2, this.size * 0.4, Math.PI / 6, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            ctx.restore();
+                        }
+                    }
+
+                    class TricolorConfetti {
+                        constructor() {
+                            this.x = Math.random() * width;
+                            this.y = Math.random() * -height - 100;
+                            this.w = Math.random() * 8 + 4;
+                            this.h = Math.random() * 12 + 6;
+                            this.sx = Math.random() * 2 - 1;
+                            this.sy = Math.random() * 2 + 1; // Fall down
+                            this.rotX = Math.random() * 360;
+                            this.rotY = Math.random() * 360;
+                            this.rotZ = Math.random() * 360;
+                            const colors = ['#FF9933', '#FFFFFF', '#138808'];
+                            this.color = colors[Math.floor(Math.random() * colors.length)];
+                        }
+                        update() {
+                            this.x += this.sx;
+                            this.y += this.sy;
+                            this.rotX += 5; this.rotY += 5; this.rotZ += 5;
+                        }
+                        draw() {
+                            ctx.save();
+                            ctx.translate(this.x, this.y);
+                            ctx.rotate(this.rotZ * Math.PI / 180);
+                            const scaleX = Math.cos(this.rotX * Math.PI / 180);
+                            const scaleY = Math.cos(this.rotY * Math.PI / 180);
+                            ctx.scale(scaleX, scaleY);
+                            ctx.fillStyle = this.color;
+                            ctx.fillRect(-this.w / 2, -this.h / 2, this.w, this.h);
+                            ctx.restore();
+                        }
+                    }
+
+                    // Release floating balloons
+                    for (let i = 0; i < 20; i++) setTimeout(() => particles.push(new TricolorBalloon()), i * 200);
+                    // Add falling confetti
+                    for (let i = 0; i < 150; i++) particles.push(new TricolorConfetti());
+
+                    const loop = () => {
+                        ctx.clearRect(0, 0, width, height);
+                        for (let i = particles.length - 1; i >= 0; i--) {
+                            const p = particles[i];
+                            p.update();
+                            p.draw();
+                            if (p instanceof TricolorBalloon && p.y < -100) particles.splice(i, 1);
+                            if (p instanceof TricolorConfetti && p.y > height + 20) particles.splice(i, 1);
+                        }
+                        animationId = requestAnimationFrame(loop);
+                    };
+                    loop();
+
+                } else if (fName === "Raksha Bandhan") {
+                    // --- REALISTIC GOLDEN THREADS & GLOWING SPARKLES ENGINE ---
+                    class GoldenThread {
+                        constructor() {
+                            this.x = Math.random() * width;
+                            this.y = Math.random() * -height - 200;
+                            this.length = Math.random() * 150 + 50;
+                            this.sy = Math.random() * 2 + 3; // Fast fall
+                            this.windOffset = Math.random() * Math.PI;
+                        }
+                        update() {
+                            this.y += this.sy;
+                            this.x += Math.sin((this.y / 100) + this.windOffset);
+                        }
+                        draw() {
+                            ctx.save();
+                            // Glowing golden rod
+                            ctx.strokeStyle = '#FFD700'; // Gold
+                            ctx.lineWidth = 2;
+                            ctx.shadowBlur = 10;
+                            ctx.shadowColor = '#FFAA00';
+
+                            ctx.beginPath();
+                            ctx.moveTo(this.x, this.y);
+                            // Draw thread curving upwards slightly as it falls
+                            ctx.quadraticCurveTo(this.x + Math.sin(this.windOffset) * 20, this.y - this.length / 2, this.x, this.y - this.length);
+                            ctx.stroke();
+
+                            // Add a 'bead' or 'rakhi center' occasionally 
+                            if (this.length > 150) {
+                                ctx.fillStyle = '#FF0033'; // Red bead
+                                ctx.beginPath();
+                                ctx.arc(this.x, this.y - this.length / 2, 5, 0, Math.PI * 2);
+                                ctx.fill();
+                            }
+                            ctx.restore();
+                        }
+                    }
+
+                    class GlowingSparkle {
+                        constructor() {
+                            this.x = Math.random() * width;
+                            this.y = Math.random() * -height;
+                            this.size = Math.random() * 3 + 1;
+                            this.sy = Math.random() * 1 + 0.5; // Slow drift
+                            this.alpha = Math.random() * 0.5 + 0.5;
+                            this.flickerSpeed = Math.random() * 0.1 + 0.05;
+                            this.flickerTime = Math.random() * Math.PI * 2;
+                        }
+                        update() {
+                            this.y += this.sy;
+                            this.flickerTime += this.flickerSpeed;
+                            this.currentAlpha = this.alpha * (0.5 + Math.sin(this.flickerTime) * 0.5); // Pulse alpha
+                        }
+                        draw() {
+                            ctx.save();
+                            ctx.fillStyle = `rgba(255, 215, 0, ${this.currentAlpha})`;
+                            ctx.shadowBlur = 15;
+                            ctx.shadowColor = 'rgba(255, 170, 0, 1)';
+                            ctx.beginPath();
+                            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    }
+
+                    for (let i = 0; i < 40; i++) particles.push(new GoldenThread());
+                    for (let i = 0; i < 150; i++) particles.push(new GlowingSparkle());
+
+                    const loop = () => {
+                        ctx.clearRect(0, 0, width, height);
+                        for (let i = particles.length - 1; i >= 0; i--) {
+                            const p = particles[i];
+                            p.update();
+                            p.draw();
+                            if (p.y > height + 200) particles.splice(i, 1);
+                        }
+                        animationId = requestAnimationFrame(loop);
+                    };
+                    loop();
+
+                } else {
+                    // --- HIGH-FIDELITY EVENT CONFETTI ENGINE (For generic / others) ---
+                    class Confetti {
+                        constructor() {
+                            this.x = Math.random() * width;
+                            this.y = Math.random() * -height - 100; // Start above screen
+                            this.w = Math.random() * 10 + 5;
+                            this.h = Math.random() * 14 + 7;
+                            this.sx = Math.random() * 2 - 1;
+                            this.sy = Math.random() * 3 + 2; // Falling speed
+                            this.rotX = Math.random() * 360;
+                            this.rotY = Math.random() * 360;
+                            this.rotZ = Math.random() * 360;
+                            this.rsX = Math.random() * 10 - 5;
+                            this.rsY = Math.random() * 10 - 5;
+                            this.rsZ = Math.random() * 10 - 5;
+                            const colors = ['#FFC700', '#FF0000', '#2E3192', '#41BBC7', '#E84C3D'];
+                            this.color = colors[Math.floor(Math.random() * colors.length)];
+                        }
+                        update() {
+                            this.x += this.sx;
+                            this.y += this.sy;
+                            this.sx += (Math.random() - 0.5) * 0.5; // Flutter in wind
+                            // Restrict horizontal speed
+                            this.sx = Math.max(-2, Math.min(this.sx, 2));
+                            this.rotX += this.rsX;
+                            this.rotY += this.rsY;
+                            this.rotZ += this.rsZ;
+                        }
+                        draw() {
+                            ctx.save();
+                            ctx.translate(this.x, this.y);
+                            ctx.rotate(this.rotZ * Math.PI / 180);
+                            // Simulate 3D rotation by scaling
+                            const scaleX = Math.cos(this.rotX * Math.PI / 180);
+                            const scaleY = Math.cos(this.rotY * Math.PI / 180);
+                            ctx.scale(scaleX, scaleY);
+                            ctx.fillStyle = this.color;
+                            ctx.fillRect(-this.w / 2, -this.h / 2, this.w, this.h);
+                            ctx.restore();
+                        }
+                    }
+
+                    for (let i = 0; i < 200; i++) particles.push(new Confetti());
+
+                    const loop = () => {
+                        ctx.clearRect(0, 0, width, height);
+                        for (let i = particles.length - 1; i >= 0; i--) {
+                            const p = particles[i];
+                            p.update();
+                            p.draw();
+                            // If it falls below screen, remove
+                            if (p.y > height + 20) particles.splice(i, 1);
+                        }
+                        animationId = requestAnimationFrame(loop);
+                    };
+                    loop();
+                }
+
+                // Autoclear after 8 seconds ensuring clean UI
+                setTimeout(() => {
+                    cancelAnimationFrame(animationId);
+                    canvas.remove();
+                }, 8000);
+            };
+
             const closeGreeting = () => {
                 festiveOverlay.classList.remove('active');
-                setTimeout(() => festiveOverlay.remove(), 500); // Wait for CSS fade out
+                setTimeout(() => {
+                    festiveOverlay.remove();
+                    launchFestivalAnimations(activeFestival);
+                }, 500); // Wait for CSS fade out
             };
 
             closeBtn.addEventListener('click', closeGreeting);
