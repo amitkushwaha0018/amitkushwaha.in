@@ -769,23 +769,27 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fallback test mode: const dateKey = "02-26"; 
         const dateKey = `${currentMonth}-${currentDate}`;
 
+        // Generate 3 random Unsplash icons based on a keyword
+        const getIcons = (kw) => [
+            `https://source.unsplash.com/100x100/?${kw}&sig=1`,
+            `https://source.unsplash.com/100x100/?${kw}&sig=2`,
+            `https://source.unsplash.com/100x100/?${kw}&sig=3`
+        ];
+
         // Lightweight dictionary of Indian Festivals (Reliable local fallback, no CORS issues & no API restrictions)
         let festivals = {
-            "01-01": { name: "New Year", text: `Happy New Year! 🎆`, icons: ["🎆", "🥂", "✨"], keyword: "fireworks" },
-            "01-14": { name: "Makar Sankranti", text: "Happy Makar Sankranti! 🪁", icons: ["🪁", "☀️", "☁️"], keyword: "kite" },
-            "01-26": { name: "Republic Day", text: "Happy Republic Day! 🇮🇳", icons: ["🇮🇳", "🫡", "🕊️"], keyword: "india" },
-            "03-14": { name: "Holi", text: "Happy Holi! 🔴", icons: ["🔴", "🟢", "🔵"], keyword: "holi,colors" },
-            "08-15": { name: "Independence Day", text: "Happy Independence Day! 🇮🇳", icons: ["🇮🇳", "🫡", "🕊️"], keyword: "india" },
-            "08-09": { name: "Raksha Bandhan", text: "Happy Raksha Bandhan! 🧵", icons: ["🧵", "💖", "🤝"], keyword: "rakhi" },
-            "10-20": { name: "Diwali", text: "Happy Diwali! 🪔", icons: ["🪔", "✨", "🎇"], keyword: "diwali,lamp" },
-            "12-25": { name: "Christmas", text: "Merry Christmas! 🎄", icons: ["🎄", "🎁", "❄️"], keyword: "christmas" },
-            "03-04": { name: "Holi", text: "Happy Holi! 🔴", icons: ["🔴", "🟢", "🔵"], keyword: "holi,colors" }, // Today's date hotfix
+            "01-01": { name: "New Year", text: `Happy New Year! 🎆`, icons: getIcons("fireworks"), keyword: "fireworks" },
+            "01-14": { name: "Makar Sankranti", text: "Happy Makar Sankranti! 🪁", icons: getIcons("kite"), keyword: "kite" },
+            "01-26": { name: "Republic Day", text: "Happy Republic Day! 🇮🇳", icons: getIcons("india"), keyword: "india" },
+            "03-14": { name: "Holi", text: "Happy Holi! 🔴", icons: getIcons("holi,colors"), keyword: "holi,colors" },
+            "08-15": { name: "Independence Day", text: "Happy Independence Day! 🇮🇳", icons: getIcons("india"), keyword: "india" },
+            "08-09": { name: "Raksha Bandhan", text: "Happy Raksha Bandhan! 🧵", icons: getIcons("rakhi"), keyword: "rakhi" },
+            "10-20": { name: "Diwali", text: "Happy Diwali! 🪔", icons: getIcons("diwali,lamp"), keyword: "diwali,lamp" },
+            "12-25": { name: "Christmas", text: "Merry Christmas! 🎄", icons: getIcons("christmas"), keyword: "christmas" },
+            "03-04": { name: "Holi", text: "Happy Holi! 🔴", icons: getIcons("holi,colors"), keyword: "holi,colors" }, // Today's date hotfix
         };
 
         const activeFestival = festivals[dateKey];
-
-        // --- TEST OVERRIDE FOR DEVELOPMENT ---
-        // activeFestival = { name: "Holi", text: "Happy Holi! 🔴", icons: ["https://source.unsplash.com/100x100/?holi,colors&sig=1", "https://source.unsplash.com/100x100/?holi,colors&sig=2", "https://source.unsplash.com/100x100/?holi,colors&sig=3"], keyword: "holi,colors" };
 
         if (activeFestival) {
             // 1. Override the Hero Text Greeting (Replaces "Good morning")
