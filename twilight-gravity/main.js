@@ -769,12 +769,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fallback test mode: const dateKey = "02-26"; 
         const dateKey = `${currentMonth}-${currentDate}`;
 
-        // Generate 3 random Unsplash icons based on a keyword
-        const getIcons = (kw) => [
-            `https://source.unsplash.com/100x100/?${kw}&sig=1`,
-            `https://source.unsplash.com/100x100/?${kw}&sig=2`,
-            `https://source.unsplash.com/100x100/?${kw}&sig=3`
-        ];
+        // Generate 3 random icons based on a keyword using LoremFlickr (Active free alternative to Unsplash Source)
+        const getIcons = (kw) => {
+            // Clean keywords for LoremFlickr (e.g. "holi,colors" -> "holi,colors")
+            const cleanKw = kw.replace(/ /g, '');
+            return [
+                `https://loremflickr.com/100/100/${cleanKw}?random=1`,
+                `https://loremflickr.com/100/100/${cleanKw}?random=2`,
+                `https://loremflickr.com/100/100/${cleanKw}?random=3`
+            ];
+        };
 
         // Lightweight dictionary of Indian Festivals (Reliable local fallback, no CORS issues & no API restrictions)
         let festivals = {
@@ -860,14 +864,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // 3. Inject the Premium Glassmorphism Popup Overlay with Dynamic Auto-Image
-            // We use standard Unsplash image fetching. It automatically resolves to a random premium photo matching the festival keyword!
-            const imageUrl = `https://source.unsplash.com/600x400/?${activeFestival.keyword},celebration`;
+            // Use LoremFlickr as the Unsplash Source alternative
+            const cleanBannerKw = activeFestival.keyword.replace(/ /g, '');
+            const imageUrl = `https://loremflickr.com/600/400/${cleanBannerKw},celebration?random=4`;
 
             const festiveOverlay = document.createElement('div');
             festiveOverlay.className = 'festive-overlay active';
             festiveOverlay.innerHTML = `
-                <div class="festive-card glass-card" style="padding: 0; overflow: hidden; max-width: 400px;">
-                    <button class="festive-close" id="festive-close" aria-label="Close Greeting" style="position: absolute; top: 10px; right: 10px; z-index: 10; background: rgba(0,0,0,0.5); border-radius: 50%; width: 30px; height: 30px; color: white;">&times;</button>
+                <div class="festive-card glass-card" style="padding: 0; overflow: hidden; max-width: 400px; position: relative;">
+                    <button class="festive-close" id="festive-close" aria-label="Close Greeting" style="position: absolute; top: 10px; right: 10px; z-index: 999; background: rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; width: 34px; height: 34px; color: white; cursor: pointer; pointer-events: auto !important; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: all 0.2s ease;">&times;</button>
                     
                     <div style="width: 100%; height: 200px; background-color: var(--bg-tertiary); position: relative;">
                         <!-- The smart image automatically pulled based on the holiday name -->
