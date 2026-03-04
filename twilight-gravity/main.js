@@ -776,42 +776,63 @@ document.addEventListener('DOMContentLoaded', () => {
             const calendarId = encodeURIComponent('en.indian#holiday@group.v.calendar.google.com');
             const ytApiKey = 'AIzaSyCYe6pPDE_tbum_qSIP3xij7oO2dVZrVf0'; // Reuse existing approved API key
 
-            // Format dates (e.g. 2026-10-20T00:00:00Z to 2026-10-20T23:59:59Z)
-            const timeMin = new Date(today.setHours(0, 0, 0, 0)).toISOString();
-            const timeMax = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+            // Critical: Time format must be exactly RFC3339 YYYY-MM-DDTHH:MM:SSZ for Google
+            const startOfDay = new Date();
+            startOfDay.setHours(0, 0, 0, 0);
+            const timeMin = startOfDay.toISOString();
 
-            const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?key=${ytApiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true`);
+            const endOfDay = new Date();
+            endOfDay.setHours(23, 59, 59, 999);
+            const timeMax = endOfDay.toISOString();
+
+            console.log("Fetching Indian Calendar Events for:", timeMin, "to", timeMax);
+
+            const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?key=${ytApiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`);
 
             if (response.ok) {
                 const data = await response.json();
+                console.log("Google Calendar Raw Data:", data);
 
+                // Sometimes multiple items exist (e.g. Bank Holiday AND Public Holiday)
                 if (data.items && data.items.length > 0) {
-                    const name = data.items[0].summary; // E.g., "Diwali"
+                    // Pick the first valid summary
+                    const validItem = data.items.find(item => item.summary);
+                    if (validItem) {
+                        const name = validItem.summary; // E.g., "Diwali"
+                        console.log("Festival Detected:", name);
 
-                    let keyword = name.split(' ')[0];
-                    const lowerName = name.toLowerCase();
-                    if (lowerName.includes("diwali")) { keyword = "diwali,lamp"; }
-                    else if (lowerName.includes("holi")) { keyword = "holi,colors"; }
-                    else if (lowerName.includes("republic") || lowerName.includes("independence")) { keyword = "india,flag"; }
-                    else if (lowerName.includes("raksha")) { keyword = "rakhi,thread"; }
-                    else if (lowerName.includes("sankranti")) { keyword = "kite,festival"; }
-                    else if (lowerName.includes("christmas")) { keyword = "christmas,tree"; }
-                    else if (lowerName.includes("year")) { keyword = "fireworks,newyear"; }
+                        let keyword = name.split(' ')[0];
+                        const lowerName = name.toLowerCase();
+                        if (lowerName.includes("diwali")) { keyword = "diwali,lamp"; }
+                        else if (lowerName.includes("holi")) { keyword = "holi,colors"; }
+                        else if (lowerName.includes("republic") || lowerName.includes("independence")) { keyword = "india,flag"; }
+                        else if (lowerName.includes("raksha")) { keyword = "rakhi,thread"; }
+                        else if (lowerName.includes("sankranti")) { keyword = "kite,festival"; }
+                        else if (lowerName.includes("christmas")) { keyword = "christmas,tree"; }
+                        else if (lowerName.includes("year")) { keyword = "fireworks,newyear"; }
 
-                    activeFestival = {
-                        name: name,
-                        text: `Happy ${name}!`,
-                        icons: [
-                            `https://source.unsplash.com/100x100/?${keyword}&sig=1`,
-                            `https://source.unsplash.com/100x100/?${keyword}&sig=2`,
-                            `https://source.unsplash.com/100x100/?${keyword}&sig=3`
-                        ],
-                        keyword: keyword
-                    };
+                        activeFestival = {
+                            name: name,
+                            text: `Happy ${name}!`,
+                            icons: [
+                                `https://source.unsplash.com/100x100/?${keyword}&sig=1`,
+                                `https://source.unsplash.com/100x100/?${keyword}&sig=2`,
+                                `https://source.unsplash.com/100x100/?${keyword}&sig=3`
+                            ],
+                            keyword: keyword
+                        };
+                    } else {
+                        console.log("No valid festival summaries found in items today.");
+                    }
+                } else {
+                    console.log("No festivals exactly today.");
                 }
+            } else {
+                const errorData = await response.json();
+                console.error("Calendar API Error Response:", errorData);
             }
         } catch (error) {
-            console.error("Google Calendar Festival API failed:", error);
+            console.error("Google Calendar Festival API failed fundamentally:", error);
         }
 
         // --- TEST OVERRIDE FOR DEVELOPMENT ---
