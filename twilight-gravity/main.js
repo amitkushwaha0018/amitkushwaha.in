@@ -1667,12 +1667,16 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => document.getElementById('feedback-message').focus(), 100);
         });
 
-        // Close Modal via Button
+        // Close Modal via Button — plays closing animation first, then removes active
         const closeModal = () => {
-            feedbackModal.classList.remove('active');
-            document.body.classList.remove('modal-open');
-            // Restore URL back to original path
-            history.pushState({}, '', '/');
+            feedbackModal.classList.add('closing');
+            setTimeout(() => {
+                feedbackModal.classList.remove('active');
+                feedbackModal.classList.remove('closing');
+                document.body.classList.remove('modal-open');
+                // Restore URL back to original path
+                history.pushState({}, '', '/');
+            }, 300); // match CSS animation duration
         };
         closeFeedbackBtn.addEventListener('click', closeModal);
 

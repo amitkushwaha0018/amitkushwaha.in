@@ -1957,3 +1957,92 @@ body.hacker-mode .nav-container {
 .tick-pop {
     animation: tickPop 0.3s ease-out forwards;
 }
+
+/* ========================================
+   FEEDBACK MODAL OPEN / CLOSE ANIMATIONS
+   ======================================== */
+
+/* Opening animation for .modal-content: spring zoom in from slightly small + fade */
+@keyframes modalOpenCard {
+    0% {
+        opacity: 0;
+        transform: scale(0.85) translateY(-30px);
+        filter: blur(4px);
+    }
+
+    60% {
+        opacity: 1;
+        transform: scale(1.03) translateY(6px);
+        filter: blur(0);
+    }
+
+    80% {
+        transform: scale(0.98) translateY(-2px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0);
+    }
+}
+
+/* Opening animation for the background overlay: fade in */
+@keyframes modalOpenOverlay {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+
+    to {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+    }
+}
+
+/* Closing animation for .modal-content: fall + fade  */
+@keyframes modalCloseCard {
+    0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.88) translateY(60px);
+        filter: blur(6px);
+    }
+}
+
+/* Closing animation for background overlay: fade out */
+@keyframes modalCloseOverlay {
+    from {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+    }
+
+    to {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+}
+
+/* Applied when modal is opening */
+.modal-overlay.active {
+    animation: modalOpenOverlay 0.35s ease forwards;
+}
+
+.modal-overlay.active .modal-content {
+    animation: modalOpenCard 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Applied when modal is closing */
+.modal-overlay.closing {
+    animation: modalCloseOverlay 0.3s ease forwards;
+    pointer-events: none;
+}
+
+.modal-overlay.closing .modal-content {
+    animation: modalCloseCard 0.3s ease forwards;
+}
