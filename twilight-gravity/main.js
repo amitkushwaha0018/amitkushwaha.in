@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
     // 0. Preloader Logic
     const preloader = document.getElementById('preloader');
     if (preloader) {
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1200);
     }
 
-    // Clean URL section routing (?section=home → scroll + replaceState to /home)
+    // Clean URL section routing (?section=home â†’ scroll + replaceState to /home)
     const urlParams = new URLSearchParams(window.location.search);
     const sectionParam = urlParams.get('section');
 
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Intercept nav link clicks (/home, /experience etc.) — smooth scroll + clean URL
+    // Intercept nav link clicks (/home, /experience etc.) â€” smooth scroll + clean URL
     document.querySelectorAll('a[href^="/"]').forEach(link => {
         const path = link.getAttribute('href'); // e.g. "/home"
         const section = path.replace('/', '');   // e.g. "home"
@@ -356,46 +356,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const animatedElements = document.querySelectorAll('.hidden');
     animatedElements.forEach(el => observer.observe(el));
 
-    // 5. YouTube Subscribe Button Magic Animation
+    // 5. YouTube Subscribe Button â€” Effects
+    // 5. YouTube Subscribe Button — Inner Shine Effect
     const ytSubscribeButton = document.querySelector('.yt-subscribe');
     if (ytSubscribeButton) {
+
+        // Basic Navigation Handling
         ytSubscribeButton.addEventListener('click', function (e) {
-            e.preventDefault(); // Stop immediate navigation to let animation play
-
+            e.preventDefault();
             const targetUrl = this.getAttribute('href');
-
-            // Remove the class if it already exists to allow re-triggering
-            this.classList.remove('animate-magic');
-
-            // Trigger a reflow
-            void this.offsetWidth;
-
-            // Add the animation class
-            this.classList.add('animate-magic');
-
-            // Generate playful sparkles
-            for (let i = 0; i < 36; i++) {
-                const sparkle = document.createElement('span');
-                sparkle.classList.add('btn-sparkle');
-
-                // Randomize trajectory (wider spread)
-                const tx = (Math.random() - 0.5) * 250; // Horizontal spread
-                const ty = (Math.random() - 0.5) * 250; // Vertical spread
-                sparkle.style.setProperty('--tx', `${tx}px`);
-                sparkle.style.setProperty('--ty', `${ty}px`);
-
-                this.appendChild(sparkle);
-
-                // Clean up the DOM element after animation completes
-                setTimeout(() => sparkle.remove(), 700);
-            }
-
-            // Wait for 600ms before navigating
-            setTimeout(() => {
-                // Open in the current tab instead of _blank
-                window.location.href = targetUrl;
-            }, 600);
+            // Give a tiny delay for immediate visual feedback before redirect
+            setTimeout(() => { window.location.href = targetUrl; }, 150);
         });
+
+        // Trigger rainbow shadow when scrolling to it
+        const launchHighlight = (btn) => {
+            btn.classList.add('inner-highlight');
+            // Remove after exactly 10 seconds as requested
+            setTimeout(() => btn.classList.remove('inner-highlight'), 10000);
+        };
+
+        const subscribeObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    launchHighlight(ytSubscribeButton);
+                    subscribeObserver.unobserve(ytSubscribeButton);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        subscribeObserver.observe(ytSubscribeButton);
     }
 
     // 6. Magnetic Hover Effect (Premium 3D Interaction)
@@ -784,20 +774,78 @@ document.addEventListener('DOMContentLoaded', () => {
             return `https://tse4.mm.bing.net/th?q=${cleanKw}&w=600&h=400&c=7&rs=1&p=0`;
         };
 
-        // Lightweight dictionary of Indian Festivals (Emojis removed, replaced completely by mini-images)
-        let festivals = {
-            "01-01": { name: "New Year", text: "Happy New Year!", icons: getIcons("New year countdown clock", "New year fireworks sky", "New year celebration balloons"), banner: getBanner("New Year Fireworks celebration") },
-            "01-14": { name: "Makar Sankranti", text: "Happy Makar Sankranti!", icons: getIcons("Makar Sankranti colorful kites", "Tilgul sweets plate", "Kite flying boy silhouette"), banner: getBanner("Makar Sankranti kite flying festival") },
-            "01-26": { name: "Republic Day", text: "Happy Republic Day!", icons: getIcons("India Gate Delhi parade", "Indian flag waving close up", "Republic day tricolor balloons"), banner: getBanner("India Republic Day celebration parade flag") },
-            "03-14": { name: "Holi", text: "Happy Holi!", icons: getIcons("Holi red pink powder hands", "Holi gulal thali plate", "Holi water balloons colors"), banner: getBanner("Holi festival colorful powder celebration") },
-            "08-15": { name: "Independence Day", text: "Happy Independence Day!", icons: getIcons("Red fort august 15 flag", "Indian flag waving sky", "Independence day troops march"), banner: getBanner("India Independence Day Flag highly detailed") },
-            "08-09": { name: "Raksha Bandhan", text: "Happy Raksha Bandhan!", icons: getIcons("Raksha bandhan beautiful rakhi thread", "Brother sister rakhi tie", "Rakhi pooja thali sweets"), banner: getBanner("Raksha Bandhan premium rakhi") },
-            "10-20": { name: "Diwali", text: "Happy Diwali!", icons: getIcons("Diwali burning diya clay", "Diwali firecrackers night sky", "Diwali rangoli colors design"), banner: getBanner("Diwali beautiful glowing diyas celebration") },
-            "12-25": { name: "Christmas", text: "Merry Christmas!", icons: getIcons("Christmas decorated pine tree", "Santa claus gifts bag", "Christmas glowing balls ornaments"), banner: getBanner("Christmas tree festive background") },
-            "03-04": { name: "Holi", text: "Happy Holi!", icons: getIcons("Holi red pink powder hands", "Holi gulal thali plate", "Holi water balloons colors"), banner: getBanner("Holi festival colorful powder celebration") }, // Today's date hotfix
+        // ===================================================================
+        // DYNAMIC FESTIVAL DATE DETECTION
+        // Fetches this year's Indian festival dates from calendar-bharat API
+        // so dates never need to be manually updated again.
+        // ===================================================================
+
+        // Maps festival names (from API) to our visual & animation config
+        const festivalConfig = {
+            // Key = lowercase, partial name to match against API festival names
+            "holi": { name: "Holi", text: "Happy Holi!", icons: getIcons("Holi red pink powder hands", "Holi gulal thali plate", "Holi water balloons colors"), banner: getBanner("Holi festival colorful powder celebration") },
+            "diwali": { name: "Diwali", text: "Happy Diwali!", icons: getIcons("Diwali burning diya clay", "Diwali firecrackers night sky", "Diwali rangoli colors design"), banner: getBanner("Diwali beautiful glowing diyas celebration") },
+            "deepawali": { name: "Diwali", text: "Happy Diwali!", icons: getIcons("Diwali burning diya clay", "Diwali firecrackers night sky", "Diwali rangoli colors design"), banner: getBanner("Diwali beautiful glowing diyas celebration") },
+            "republic day": { name: "Republic Day", text: "Happy Republic Day!", icons: getIcons("India Gate Delhi parade", "Indian flag waving close up", "Republic day tricolor balloons"), banner: getBanner("India Republic Day celebration parade flag") },
+            "independence day": { name: "Independence Day", text: "Happy Independence Day!", icons: getIcons("Red fort august 15 flag", "Indian flag waving sky", "Independence day troops march"), banner: getBanner("India Independence Day Flag highly detailed") },
+            "makar sankranti": { name: "Makar Sankranti", text: "Happy Makar Sankranti!", icons: getIcons("Makar Sankranti colorful kites", "Tilgul sweets plate", "Kite flying boy silhouette"), banner: getBanner("Makar Sankranti kite flying festival") },
+            "pongal": { name: "Makar Sankranti", text: "Happy Pongal!", icons: getIcons("Pongal festival pot kolam", "Sugarcane rice festival", "Pongal rangoli south india"), banner: getBanner("Pongal harvest festival celebration") },
+            "raksha bandhan": { name: "Raksha Bandhan", text: "Happy Raksha Bandhan!", icons: getIcons("Raksha bandhan beautiful rakhi thread", "Brother sister rakhi tie", "Rakhi pooja thali sweets"), banner: getBanner("Raksha Bandhan premium rakhi") },
+            "rakhi": { name: "Raksha Bandhan", text: "Happy Rakhi!", icons: getIcons("Raksha bandhan beautiful rakhi thread", "Brother sister rakhi tie", "Rakhi pooja thali sweets"), banner: getBanner("Raksha Bandhan premium rakhi") },
+            "christmas": { name: "Christmas", text: "Merry Christmas!", icons: getIcons("Christmas decorated pine tree", "Santa claus gifts bag", "Christmas glowing balls ornaments"), banner: getBanner("Christmas tree festive background") },
+            "new year": { name: "New Year", text: "Happy New Year!", icons: getIcons("New year countdown clock", "New year fireworks sky", "New year celebration balloons"), banner: getBanner("New Year Fireworks celebration") },
+            "lohri": { name: "Lohri", text: "Happy Lohri!", icons: getIcons("Lohri bonfire night punjab", "Lohri popcorn revdi sesame", "Lohri dhol folk dance"), banner: getBanner("Lohri festival bonfire celebrates") },
+            "navratri": { name: "Navratri", text: "Happy Navratri!", icons: getIcons("Navratri garba dance girls", "Navratri goddess durga idol", "Navratri dandiya sticks colorful"), banner: getBanner("Navratri garba festival celebration") },
+            "ganesh": { name: "Ganesh Chaturthi", text: "Happy Ganesh Chaturthi!", icons: getIcons("Ganesh idol clay vibrant", "Ganesh chaturthi procession visharjan", "Modak sweet offering"), banner: getBanner("Ganesh Chaturthi festival celebration") },
+            "eid": { name: "Eid", text: "Eid Mubarak!", icons: getIcons("Eid mubarak crescent moon lantern", "Eid celebration family together", "Eid seviyan kheer"), banner: getBanner("Eid celebration festival") },
+            "guru nanak": { name: "Guru Nanak Jayanti", text: "Happy Gurpurab!", icons: getIcons("Guru Nanak Jayanti golden temple", "Gurpurab candles lantern", "Sikh Waheguru prayer diyas"), banner: getBanner("Gurpurab golden temple celebration") },
         };
 
-        const activeFestival = festivals[dateKey];
+        // Helper: find a matching festival config from an API event name
+        const matchFestival = (eventName) => {
+            const lower = eventName.toLowerCase();
+            for (const key in festivalConfig) {
+                if (lower.includes(key)) return festivalConfig[key];
+            }
+            return null;
+        };
+
+        let activeFestival = null;
+
+        try {
+            // Fetch this year's Indian calendar data from calendar-bharat (free, no API key needed)
+            const apiUrl = `https://jayantur13.github.io/calendar-bharat/calendar/${currentYear}.json`;
+            const response = await fetch(apiUrl);
+            if (response.ok) {
+                const data = await response.json();
+                const yearData = data[String(currentYear)];
+
+                // Walk through every month's entries looking for today's date
+                if (yearData) {
+                    outer: for (const monthKey in yearData) {
+                        const month = yearData[monthKey];
+                        for (const dateLabel in month) {
+                            // dateLabel is like "March 4, 2026, Wednesday"
+                            const entryDate = new Date(dateLabel.split(',').slice(0, 2).join(','));
+                            const entryMonth = String(entryDate.getMonth() + 1).padStart(2, '0');
+                            const entryDay = String(entryDate.getDate()).padStart(2, '0');
+                            if (`${entryMonth}-${entryDay}` === dateKey) {
+                                const eventName = month[dateLabel].event;
+                                const match = matchFestival(eventName);
+                                if (match) {
+                                    activeFestival = match;
+                                    break outer;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            // API unavailable â€” silently ignore, no festival shown today
+            console.warn('[Festival] Could not fetch calendar data:', err);
+        }
+
 
         if (activeFestival) {
             // 1. Override the Hero Text Greeting (Replaces "Good morning")
@@ -1574,7 +1622,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let originalTitle = document.title;
     document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "hidden") {
-            document.title = "👋 Come back soon!";
+            document.title = "ðŸ‘‹ Come back soon!";
         } else {
             document.title = originalTitle;
         }
@@ -1667,7 +1715,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => document.getElementById('feedback-message').focus(), 100);
         });
 
-        // Close Modal via Button — plays closing animation first, then removes active
+        // Close Modal via Button â€” plays closing animation first, then removes active
         const closeModal = () => {
             feedbackModal.classList.add('closing');
             setTimeout(() => {
@@ -1755,3 +1803,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 });
+
