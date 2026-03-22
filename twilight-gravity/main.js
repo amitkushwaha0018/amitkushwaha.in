@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     // 0. Preloader Logic
     const preloader = document.getElementById('preloader');
     if (preloader) {
@@ -1618,15 +1618,7 @@
         });
     }
 
-    // 14. Dynamic Tab Title ("Come Back!")
-    let originalTitle = document.title;
-    document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "hidden") {
-            document.title = "ðŸ‘‹ Come back soon!";
-        } else {
-            document.title = originalTitle;
-        }
-    });
+    // Removed dynamic tab title as per request; tab name will strictly stay static.
 
     // 15. Subtle UI Sound Effects (AudioContext)
     const AudioContext = window.AudioContext || window.webkitAudioContext;
