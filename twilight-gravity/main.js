@@ -12,34 +12,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Auto-open Feedback Modal if URL has ?feedback=open
-    // (Triggered when someone visits www.amit-kushwaha.in/feedback)
-    if (window.location.search.includes('feedback=open')) {
-        // Clean the URL so ?feedback=open doesn't show in address bar
-        window.history.replaceState({}, document.title, window.location.pathname);
-        // Wait for page to fully load, then open the modal
-        setTimeout(() => {
-            const feedbackModal = document.getElementById('feedback-modal');
-            if (feedbackModal) {
-                feedbackModal.classList.add('active');
-                document.body.classList.add('modal-open');
-            }
-        }, 1200);
-    }
+    // Clean Subdirectory URL Path Routing for Mobile & Desktop (/home, /experience, /youtube, /contact, /stats, /feedback)
+    const currentPath = window.location.pathname.replace('/', '').toLowerCase();
+    const validSections = ['home', 'experience', 'youtube', 'contact', 'stats', 'feedback'];
 
-    // Clean URL section routing
-    const urlParams = new URLSearchParams(window.location.search);
-    const sectionParam = urlParams.get('section');
-
-    if (sectionParam) {
-        const validSections = ['home', 'experience', 'youtube', 'contact', 'stats'];
-        if (validSections.includes(sectionParam)) {
+    if (currentPath && validSections.includes(currentPath)) {
+        if (currentPath === 'feedback') {
             setTimeout(() => {
-                const target = document.getElementById(sectionParam);
+                const feedbackModal = document.getElementById('feedback-modal');
+                if (feedbackModal) {
+                    feedbackModal.classList.add('active');
+                    document.body.classList.add('modal-open');
+                }
+            }, 600);
+        } else {
+            setTimeout(() => {
+                const target = document.getElementById(currentPath);
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth' });
                 }
-            }, 850);
+            }, 600);
         }
     }
 
