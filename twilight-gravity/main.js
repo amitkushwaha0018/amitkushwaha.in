@@ -300,6 +300,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.classList.add('active');
             }
         });
+
+        if (current && window.location.protocol.startsWith('http') && !document.body.classList.contains('modal-open')) {
+            const cleanUrl = '/' + current;
+            if (window.location.pathname !== cleanUrl) {
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+        }
     });
 
     // 4. Intersection Observer for Scroll Animations
