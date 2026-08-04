@@ -2145,6 +2145,18 @@ body.hacker-mode .nav-container {
         width: 280px;
         height: 350px;
     }
+
+    .shorts-container {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 1024px) {
+    .shorts-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.2rem;
+    }
 }
 
 /* Micro-polish for extremely narrow mobile screens (like iPhone SE) */
