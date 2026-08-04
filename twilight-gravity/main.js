@@ -27,37 +27,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1200);
     }
 
-    // Clean URL section routing (?section=home â†’ scroll + replaceState to /home)
+    // Clean URL section routing
     const urlParams = new URLSearchParams(window.location.search);
     const sectionParam = urlParams.get('section');
 
     if (sectionParam) {
         const validSections = ['home', 'experience', 'youtube', 'contact', 'stats'];
         if (validSections.includes(sectionParam)) {
-            // Clean the URL immediately to just /sectionname
-            window.history.replaceState({}, document.title, '/' + sectionParam);
-
-            // Wait for preloader to finish, then aggressively scroll
             setTimeout(() => {
                 const target = document.getElementById(sectionParam);
                 if (target) {
-                    // Try smooth scroll first
                     target.scrollIntoView({ behavior: 'smooth' });
-                    // Failsafe jump if browser interrupts
-                    setTimeout(() => {
-                        if (Math.abs(window.scrollY - target.offsetTop) > 100) {
-                            window.scrollTo({ top: target.offsetTop - 80, behavior: 'auto' });
-                        }
-                    }, 500);
                 }
-            }, 850); // Just after the 800ms preloader
+            }, 850);
         }
     }
 
-    // Intercept nav link clicks (/home, /experience etc.) â€” smooth scroll + clean URL
-    document.querySelectorAll('a[href^="/"]').forEach(link => {
-        const path = link.getAttribute('href'); // e.g. "/home"
-        const section = path.replace('/', '');   // e.g. "home"
+    // Intercept nav link clicks (#home, #experience, /home, /youtube etc.) — smooth scroll
+    document.querySelectorAll('a[href^="#"], a[href^="/"]').forEach(link => {
+        const href = link.getAttribute('href');
+        if (!href || href === '/' || href === '#') return;
+        const section = href.replace('/', '').replace('#', '');
         const validSections = ['home', 'experience', 'youtube', 'contact', 'stats'];
         if (validSections.includes(section)) {
             link.addEventListener('click', e => {
@@ -65,7 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const target = document.getElementById(section);
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth' });
-                    window.history.pushState({}, document.title, '/' + section);
+                    if (window.location.protocol.startsWith('http')) {
+                        window.history.pushState({}, document.title, '/' + section);
+                    }
                 }
             });
         }
@@ -356,36 +348,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const animatedElements = document.querySelectorAll('.hidden');
     animatedElements.forEach(el => observer.observe(el));
 
-    // 5. YouTube Subscribe Button â€” Effects
-    // 5. YouTube Subscribe Button — Inner Shine Effect
-    const ytSubscribeButton = document.querySelector('.yt-subscribe');
+    // 5. YouTube Subscribe Button — Direct Channel Link
+    const ytSubscribeButton = document.getElementById('yt-subscribe-btn') || document.querySelector('.yt-subscribe-btn');
     if (ytSubscribeButton) {
-
-        // Basic Navigation Handling
         ytSubscribeButton.addEventListener('click', function (e) {
             e.preventDefault();
-            const targetUrl = this.getAttribute('href');
-            // Give a tiny delay for immediate visual feedback before redirect
-            setTimeout(() => { window.location.href = targetUrl; }, 150);
+            window.open('https://youtube.com/@amitkushwaha0018', '_blank', 'noopener,noreferrer');
         });
-
-        // Trigger rainbow shadow when scrolling to it
-        const launchHighlight = (btn) => {
-            btn.classList.add('inner-highlight');
-            // Remove after exactly 10 seconds as requested
-            setTimeout(() => btn.classList.remove('inner-highlight'), 10000);
-        };
-
-        const subscribeObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    launchHighlight(ytSubscribeButton);
-                    subscribeObserver.unobserve(ytSubscribeButton);
-                }
-            });
-        }, { threshold: 0.5 });
-
-        subscribeObserver.observe(ytSubscribeButton);
     }
 
     // 6. Magnetic Hover Effect (Premium 3D Interaction)
@@ -429,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const videosContainer = document.getElementById('youtube-videos-container');
 
     if (shortsContainer && videosContainer) {
-        const searchUrl = `https://www.googleapis.com/youtube/v3/search?key=${apiKey}&channelId=${ytChannelId}&part=snippet,id&order=date&maxResults=10&type=video`;
+        const searchUrl = `https://www.googleapis.com/youtube/v3/search?key=${apiKey}&channelId=${ytChannelId}&part=snippet,id&order=date&maxResults=30&type=video`;
 
         fetch(searchUrl)
             .then(response => response.json())
@@ -440,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const videoIds = searchData.items.map(item => item.id.videoId).join(',');
-                const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?key=${apiKey}&id=${videoIds}&part=contentDetails,snippet`;
+                const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?key=${apiKey}&id=${videoIds}&part=contentDetails,snippet,statistics`;
 
                 return fetch(detailsUrl);
             })
@@ -458,9 +427,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 let videosCount = 0;
 
                 detailsData.items.forEach(video => {
-                    const durationStr = video.contentDetails.duration;
+                    const durationStr = video.contentDetails ? video.contentDetails.duration : '';
 
-                    // Robust ISO 8601 duration parsing
+                    // Robust ISO 8601 duration parsing (PT1M30S -> 90s, PT3M5S -> 185s)
                     let totalSeconds = 0;
                     const matchPattern = durationStr.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
                     if (matchPattern) {
@@ -470,27 +439,36 @@ document.addEventListener('DOMContentLoaded', () => {
                         totalSeconds = (h * 3600) + (m * 60) + s;
                     }
 
-                    const title = video.snippet.title;
-                    const desc = video.snippet.description ? video.snippet.description.toLowerCase() : '';
+                    const title = video.snippet ? video.snippet.title : '';
+                    const desc = (video.snippet && video.snippet.description) ? video.snippet.description.toLowerCase() : '';
+                    const lowerTitle = title.toLowerCase();
 
-                    // Mark as short if <= 65 seconds (covers YT's 1s padding) OR explicitly tagged
-                    let isShort = (totalSeconds <= 65) || title.toLowerCase().includes('#shorts') || desc.includes('#shorts');
+                    // STRICT Shorts check: <= 180s (3 mins) OR title/desc includes #shorts / #short
+                    const isShort = (totalSeconds > 0 && totalSeconds <= 180) || 
+                                    lowerTitle.includes('#shorts') || 
+                                    lowerTitle.includes('#short') || 
+                                    desc.includes('#shorts') || 
+                                    desc.includes('#short');
+
+                    // STRICT Long-form check: Must be > 180s AND NOT marked as short
+                    const isLongForm = (totalSeconds > 180) && !lowerTitle.includes('#shorts') && !desc.includes('#shorts');
 
                     const pubDate = new Date(video.snippet.publishedAt);
                     const date = `${String(pubDate.getDate()).padStart(2, '0')}/${String(pubDate.getMonth() + 1).padStart(2, '0')}/${pubDate.getFullYear()}`;
                     const videoId = video.id;
                     const thumbnailUrl = video.snippet.thumbnails.high ? video.snippet.thumbnails.high.url : video.snippet.thumbnails.default.url;
 
-                    const videoCard = document.createElement('a');
-                    videoCard.target = '_blank';
-                    videoCard.rel = 'noopener noreferrer';
-                    videoCard.className = 'video-wrapper glass-card';
-                    videoCard.style.textDecoration = 'none';
-                    videoCard.style.display = 'block';
-                    videoCard.style.overflow = 'hidden';
-
-                    if (isShort && shortsCount < 5) {
+                    if (isShort && shortsCount < 6) {
+                        const videoCard = document.createElement('a');
+                        videoCard.target = '_blank';
+                        videoCard.rel = 'noopener noreferrer';
+                        videoCard.className = 'video-wrapper glass-card';
+                        videoCard.style.textDecoration = 'none';
+                        videoCard.style.display = 'block';
+                        videoCard.style.overflow = 'hidden';
                         videoCard.href = `https://www.youtube.com/shorts/${videoId}`;
+                        const rawViews = parseInt(video.statistics ? video.statistics.viewCount : 0);
+                        const formattedViews = rawViews.toLocaleString('en-IN');
                         videoCard.innerHTML = `
                             <div class="video-thumbnail" style="position: relative; padding-bottom: 177.77%; height: 0; overflow: hidden; background: #000;">
                                 <img src="${thumbnailUrl}" alt="${title}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
@@ -500,17 +478,27 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div class="video-info" style="padding: 1.25rem;">
                                 <h3 style="color: var(--text-primary); font-size: 1.05rem; margin: 0 0 0.5rem 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${title}</h3>
+                                <div class="video-live-views" style="margin-bottom: 0.25rem; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">
+                                    <span>${formattedViews} views</span>
+                                </div>
                                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">${date}</p>
                             </div>
                         `;
-                        // Add hover effect
                         videoCard.addEventListener('mouseenter', () => { videoCard.querySelector('.play-overlay').style.opacity = '1'; });
                         videoCard.addEventListener('mouseleave', () => { videoCard.querySelector('.play-overlay').style.opacity = '0'; });
                         shortsContainer.appendChild(videoCard);
                         shortsCount++;
-                    } else if (!isShort && videosCount < 3) {
+                    } else if (isLongForm && videosCount < 3) {
+                        const videoCard = document.createElement('a');
+                        videoCard.target = '_blank';
+                        videoCard.rel = 'noopener noreferrer';
+                        videoCard.className = 'video-wrapper glass-card widescreen';
+                        videoCard.style.textDecoration = 'none';
+                        videoCard.style.display = 'block';
+                        videoCard.style.overflow = 'hidden';
                         videoCard.href = `https://www.youtube.com/watch?v=${videoId}`;
-                        videoCard.classList.add('widescreen');
+                        const rawViews = parseInt(video.statistics ? video.statistics.viewCount : 0);
+                        const formattedViews = rawViews.toLocaleString('en-IN');
                         videoCard.innerHTML = `
                             <div class="video-thumbnail" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000;">
                                 <img src="${thumbnailUrl}" alt="${title}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
@@ -520,10 +508,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div class="video-info" style="padding: 1.25rem;">
                                 <h3 style="color: var(--text-primary); font-size: 1.05rem; margin: 0 0 0.5rem 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${title}</h3>
+                                <div class="video-live-views" style="margin-bottom: 0.25rem; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">
+                                    <span>${formattedViews} views</span>
+                                </div>
                                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">${date}</p>
                             </div>
                         `;
-                        // Add hover effect
                         videoCard.addEventListener('mouseenter', () => { videoCard.querySelector('.play-overlay').style.opacity = '1'; });
                         videoCard.addEventListener('mouseleave', () => { videoCard.querySelector('.play-overlay').style.opacity = '0'; });
                         videosContainer.appendChild(videoCard);
@@ -531,7 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                // Add Empty states if neither found
+                // Add Empty states if count is 0
                 if (shortsCount === 0) {
                     shortsContainer.innerHTML = '<p style="color: var(--text-secondary); text-align: center; width: 100%; padding: 3rem 0;">No short videos available.</p>';
                 }
@@ -542,7 +532,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     `;
                 }
-
             })
             .catch(error => {
                 console.error('Error fetching YouTube Data API:', error);
@@ -550,119 +539,155 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    // 8. Animated Statistics Counter (Live API Fetch)
+    // 8. True Per-Digit Mechanical Odometer Engine (Only changing digit animates & turns green/red)
     const statsSection = document.querySelector('.stats-grid');
     if (statsSection) {
-        const counters = document.querySelectorAll('.counter');
-        const ytChannelIdStats = 'UCUisfQ3CLN_7sFl7kMtTD9g'; // User's Channel ID
-        const apiKeyStats = 'AIzaSyCYe6pPDE_tbum_qSIP3xij7oO2dVZrVf0'; // User API Key
+        const liveSubOdometer = document.getElementById('live-sub-odometer');
+        const liveViewsOdometer = document.getElementById('live-views-odometer');
+        const videoCountCounter = document.getElementById('video-count-counter');
 
-        // Track last known values for change detection
-        let lastSubs = 0, lastViews = 0;
+        let lastSubCount = 1315;
+        let lastViewCount = 16458;
+        let isInitialRollComplete = false;
 
         const fmt = (n) => n.toLocaleString('en-IN');
 
-        const animateTo = (el, from, to) => {
-            if (!el || from === to) return;
-            const diff = to - from;
-            const steps = 30;
-            let step = 0;
-            const interval = setInterval(() => {
-                step++;
-                const val = Math.round(from + (diff * step / steps));
-                el.textContent = fmt(val);
-                if (step >= steps) {
-                    clearInterval(interval);
-                    el.textContent = fmt(to);
-                    el.classList.remove('tick-pop');
-                    void el.offsetWidth;
-                    el.classList.add('tick-pop');
+        const renderFormattedOdometer = (el, str) => {
+            if (!el) return;
+            el.innerHTML = '';
+            for (let i = 0; i < str.length; i++) {
+                const char = str[i];
+                if (/\d/.test(char)) {
+                    el.innerHTML += `<span class="odo-digit-wrap"><span class="odo-digit-inner">${char}</span></span>`;
+                } else {
+                    el.innerHTML += `<span class="odo-char">${char}</span>`;
                 }
-            }, 30);
-        };
-
-        const fetchLiveStats = async () => {
-            try {
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${ytChannelIdStats}&key=${apiKeyStats}`);
-                const data = await response.json();
-
-                if (data && data.items && data.items.length > 0) {
-                    const stats = data.items[0].statistics;
-
-                    // Update stats section counters with real YouTube data
-                    counters[0].setAttribute('data-target', stats.subscriberCount || 0);
-                    counters[1].setAttribute('data-target', stats.viewCount || 0);
-                    counters[2].setAttribute('data-target', stats.videoCount || 0);
-                }
-            } catch (error) {
-                console.error('Error fetching YouTube stats:', error);
             }
         };
 
-        // Fetch once on load (Standard API sync, no live Social Blade polling)
-        fetchLiveStats();
+        const updateOdometerPerDigit = (el, oldVal, newVal) => {
+            if (!el) return;
+            const oldStr = fmt(oldVal);
+            const newStr = fmt(newVal);
+            const isIncrease = newVal > oldVal;
 
+            if (oldStr.length !== newStr.length || el.children.length === 0) {
+                renderFormattedOdometer(el, newStr);
+                return;
+            }
 
-        const speed = 150; // Delay smoother 
+            // Whole Number Color Flash (Green on Up / Red on Down)
+            const colorClass = isIncrease ? 'count-up-green' : 'count-down-red';
+            el.classList.remove('count-up-green', 'count-down-red');
+            void el.offsetWidth; // Reflow
+            el.classList.add(colorClass);
 
-        const animateCounters = () => {
-            counters.forEach((counter, index) => {
-                const updateCount = () => {
-                    const target = +counter.getAttribute('data-target');
-                    if (!counter.countValue) counter.countValue = 0;
+            const children = Array.from(el.children);
+            for (let i = 0; i < newStr.length; i++) {
+                const oldChar = oldStr[i];
+                const newChar = newStr[i];
+                const child = children[i];
 
-                    // Prevent dividing by zero if target is 0
-                    if (target === 0) {
-                        counter.innerText = '0';
+                // ONLY THE CHANGING DIGIT GETS THE MECHANICAL ROLL ANIMATION!
+                if (child && oldChar !== newChar && /\d/.test(newChar)) {
+                    const rollClass = isIncrease ? 'changing-digit-up' : 'changing-digit-down';
+                    child.className = `odo-digit-wrap ${rollClass}`;
+                    child.innerHTML = `<span class="odo-digit-inner">${newChar}</span>`;
+                }
+            }
+
+            // After 1.2s, revert whole number & digits back to normal state
+            setTimeout(() => {
+                if (el) el.classList.remove('count-up-green', 'count-down-red');
+                if (el) {
+                    Array.from(el.children).forEach(child => {
+                        if (child) child.className = 'odo-digit-wrap';
+                    });
+                }
+            }, 1250);
+        };
+
+        const rollFromZero = (el, targetVal) => {
+            if (!el || !targetVal) return;
+            let currentVal = 0;
+            const duration = 1400;
+            const startTime = performance.now();
+
+            const step = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                currentVal = Math.floor(easeProgress * targetVal);
+                renderFormattedOdometer(el, fmt(currentVal));
+
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    renderFormattedOdometer(el, fmt(targetVal));
+                }
+            };
+            requestAnimationFrame(step);
+        };
+
+        const fetchStudioRealtimeStats = async () => {
+            try {
+                const response = await fetch('/api/studio-realtime');
+                const data = await response.json();
+
+                if (data && data.success) {
+                    const realSubs = data.subscriberCount || 1315;
+                    const realViews = data.viewCount || 16458;
+                    const realVideos = data.videoCount || 30;
+
+                    if (!isInitialRollComplete) {
+                        isInitialRollComplete = true;
+                        lastSubCount = realSubs;
+                        lastViewCount = realViews;
+
+                        rollFromZero(liveSubOdometer, realSubs);
+                        rollFromZero(liveViewsOdometer, realViews);
+                        rollFromZero(videoCountCounter, realVideos);
                         return;
                     }
 
-                    // Dynamically set speed: Fast for Subs/Views, much slower for Videos (index 2)
-                    const currentSpeedDelay = index === 2 ? 800 : speed;
-
-                    // Ensure the speed is at least 1, otherwise small numbers won't animate
-                    const curSpeed = Math.max(target / currentSpeedDelay, 1);
-
-                    if (counter.countValue < target) {
-                        counter.countValue = Math.ceil(counter.countValue + curSpeed);
-                        if (counter.countValue > target) counter.countValue = target;
-
-                        if (target >= 1000000) {
-                            counter.innerText = (counter.countValue / 1000000).toFixed(1) + 'M+';
-                        } else if (target >= 1000) {
-                            counter.innerText = (counter.countValue / 1000).toFixed(1) + 'K+';
-                        } else {
-                            counter.innerText = counter.countValue;
-                        }
-
-                        requestAnimationFrame(updateCount);
-                    } else {
-                        if (target >= 1000000) {
-                            counter.innerText = (target / 1000000).toFixed(1) + 'M+';
-                        } else if (target >= 1000) {
-                            counter.innerText = (target / 1000).toFixed(1) + 'K+';
-                        } else {
-                            counter.innerText = target;
-                        }
+                    if (liveSubOdometer && lastSubCount !== null && realSubs !== lastSubCount) {
+                        updateOdometerPerDigit(liveSubOdometer, lastSubCount, realSubs);
+                        lastSubCount = realSubs;
                     }
-                };
-                updateCount();
-            });
+
+                    if (liveViewsOdometer && lastViewCount !== null && realViews !== lastViewCount) {
+                        updateOdometerPerDigit(liveViewsOdometer, lastViewCount, realViews);
+                        lastViewCount = realViews;
+                    }
+
+                    if (videoCountCounter) {
+                        videoCountCounter.textContent = fmt(realVideos);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching YouTube Studio stats:', error);
+                if (!isInitialRollComplete) {
+                    isInitialRollComplete = true;
+                    rollFromZero(liveSubOdometer, 1315);
+                    rollFromZero(liveViewsOdometer, 16458);
+                    rollFromZero(videoCountCounter, 30);
+                }
+            }
         };
 
         const statsObserver = new IntersectionObserver((entries, obs) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    // Fetch live data first, THEN animate
-                    fetchLiveStats().then(() => {
-                        animateCounters();
-                    });
+                    fetchStudioRealtimeStats();
                     obs.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.5 });
+        }, { threshold: 0.05 });
 
         statsObserver.observe(statsSection);
+
+        // Poll YouTube Studio API endpoint strictly every 3 seconds for real-time changes ONLY
+        setInterval(fetchStudioRealtimeStats, 3000);
     }
 
     // 9. Scroll to Top Button
@@ -1727,29 +1752,60 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // 19. Background FormSubmit API Delivery
+        // 19. Strict Validation & Background FormSubmit API Delivery
+        const nameInput = document.getElementById('feedback-name');
+        const titleInput = document.getElementById('feedback-title');
+        const messageInput = document.getElementById('feedback-message');
+        const inputs = [nameInput, titleInput, messageInput];
+
+        // Clear red error borders as user types
+        inputs.forEach(input => {
+            if (input) {
+                input.addEventListener('input', () => {
+                    if (input.value.trim() !== '') {
+                        input.style.border = '';
+                    }
+                });
+            }
+        });
+
         feedbackForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const nameInput = document.getElementById('feedback-name');
-            const titleInput = document.getElementById('feedback-title');
-            const messageInput = document.getElementById('feedback-message');
             const submitBtn = feedbackForm.querySelector('button[type="submit"]');
             const successMsg = document.getElementById('feedback-success');
 
-            const name = nameInput.value.trim();
-            const title = titleInput.value.trim();
-            const message = messageInput.value.trim();
+            const name = nameInput ? nameInput.value.trim() : '';
+            const title = titleInput ? titleInput.value.trim() : '';
+            const message = messageInput ? messageInput.value.trim() : '';
 
-            if (!name || !title || !message) return;
+            let isValid = true;
 
-            const originalText = submitBtn.textContent;
+            // Highlight empty fields with red border and block submission
+            if (!name) {
+                if (nameInput) nameInput.style.border = '2px solid #EF4444';
+                isValid = false;
+            }
+            if (!title) {
+                if (titleInput) titleInput.style.border = '2px solid #EF4444';
+                isValid = false;
+            }
+            if (!message) {
+                if (messageInput) messageInput.style.border = '2px solid #EF4444';
+                isValid = false;
+            }
+
+            if (!isValid) {
+                alert('Kripya saari details (Name, Subject, and Message) bharne ke baad hi send karein!');
+                return;
+            }
+
+            const originalText = submitBtn.innerHTML;
             submitBtn.textContent = 'Sending...';
             submitBtn.style.opacity = '0.7';
             submitBtn.disabled = true;
 
             try {
-                // Web3Forms API - Manually built payload for reliability
                 const payload = {
                     access_key: "8249fc4b-f5a7-440f-9319-6943e21f01a4",
                     subject: "New Portfolio Feedback: " + title,
@@ -1773,6 +1829,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     nameInput.value = '';
                     titleInput.value = '';
                     messageInput.value = '';
+                    inputs.forEach(inp => inp.style.border = '');
                     successMsg.style.display = 'block';
 
                     setTimeout(() => {
@@ -1786,7 +1843,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Feedback Error:', error);
                 alert('Error: ' + error.message);
             } finally {
-                submitBtn.textContent = originalText;
+                submitBtn.innerHTML = originalText;
                 submitBtn.style.opacity = '1';
                 submitBtn.disabled = false;
             }

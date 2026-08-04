@@ -31,11 +31,11 @@
     <!-- Strict Content Security Policy (CSP) Firewall -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self'; 
-        script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; 
+        script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://apis.google.com; 
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
         font-src 'self' https://fonts.gstatic.com; 
-        img-src 'self' data: https://source.unsplash.com https://images.unsplash.com https://i.ytimg.com https://ui-avatars.com https://picsum.photos https://fastly.picsum.photos https://tse1.mm.bing.net https://tse2.mm.bing.net https://tse3.mm.bing.net https://tse4.mm.bing.net; 
-        frame-src 'self' https://www.youtube.com;
+        img-src 'self' data: https://source.unsplash.com https://images.unsplash.com https://i.ytimg.com https://yt3.ggpht.com https://ui-avatars.com https://picsum.photos https://fastly.picsum.photos https://tse1.mm.bing.net https://tse2.mm.bing.net https://tse3.mm.bing.net https://tse4.mm.bing.net; 
+        frame-src 'self' https://www.youtube.com https://apis.google.com;
         connect-src 'self' https://date.nager.at https://www.googleapis.com https://formsubmit.co https://api.emailjs.com https://api.web3forms.com https://jayantur13.github.io;
     ">
 
@@ -53,7 +53,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=apple_translucent_v3">
+
+    <!-- Google Official YouTube Subscribe Platform API (Detects real subscriber status) -->
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
 
 
 </head>
@@ -82,7 +85,7 @@
                     <span class="bar"></span>
                     <span class="bar"></span>
                 </button>
-                <a href="https://www.amit-kushwaha.in" class="logo">Amit<span>Kushwaha</span></a>
+                <a href="/home" class="logo">Amit<span>Kushwaha</span></a>
             </div>
             <ul class="nav-links">
                 <li><a href="/home">Home</a></li>
@@ -118,10 +121,10 @@
     <!-- Mobile Menu -->
     <aside class="mobile-menu" id="mobile-menu">
         <ul class="mobile-nav-links">
-            <li><a href="#home">Home</a></li>
-            <li><a href="#experience">Experience</a></li>
-            <li><a href="#youtube">YouTube</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <li><a href="/home">Home</a></li>
+            <li><a href="/experience">Experience</a></li>
+            <li><a href="/youtube">YouTube</a></li>
+            <li><a href="/contact">Contact</a></li>
         </ul>
     </aside>
 
@@ -130,7 +133,7 @@
         <div class="container hero-container">
             <div class="hero-content">
                 <span class="greeting" id="dynamic-greeting">Hello, I'm</span>
-                <h1 class="gradient-text">Amit Kushwaha</h1>
+                <h1 class="gradient-text hero-title-stacked">Amit<br>Kushwaha</h1>
                 <h2 class="role">Educator &amp; Vlogger</h2>
                 <p class="bio">I share knowledge and create engaging digital content to inspire, teach, and try to
                     connect with
@@ -222,32 +225,45 @@
     <section id="stats" class="stats section">
         <div class="container">
             <div class="stats-grid">
-                <div class="stat-card glass-card hidden" data-animation="zoom-in">
+                <!-- Live Subscribers Card -->
+                <div class="stat-card glass-card hidden live-subscriber-card" data-animation="zoom-in">
+                    <div class="live-counter-badge">
+                        <span class="live-pulse-dot"></span>
+                        <span class="live-badge-text">LIVE COUNTING</span>
+                    </div>
                     <span class="stat-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            style="color: var(--accent-color);">
+                            style="color: #FF0000;">
                             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                             <circle cx="9" cy="7" r="4"></circle>
                             <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
                     </span>
-                    <h3 class="counter" data-target="45200">0</h3>
-                    <p>Subscribers</p>
+                    <h3 class="counter live-odometer" id="live-sub-odometer" data-target="1315">1,315</h3>
+                    <p>Live Subscribers</p>
                 </div>
-                <div class="stat-card glass-card hidden" data-animation="zoom-in" style="animation-delay: 0.1s;">
+
+                <!-- Live Total Views Card -->
+                <div class="stat-card glass-card hidden live-views-card" data-animation="zoom-in" style="animation-delay: 0.1s;">
+                    <div class="live-counter-badge views-badge">
+                        <span class="live-pulse-dot blue-dot"></span>
+                        <span class="live-badge-text blue-text">REALTIME VIEWS</span>
+                    </div>
                     <span class="stat-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            style="color: var(--accent-secondary);">
+                            style="color: #EC4899;">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                             <circle cx="12" cy="12" r="3"></circle>
                         </svg>
                     </span>
-                    <h3 class="counter" data-target="1200000">0</h3>
+                    <h3 class="counter live-odometer views-odometer" id="live-views-odometer" data-target="16458">16,458</h3>
                     <p>Total Views</p>
                 </div>
+
+                <!-- Videos Created Card -->
                 <div class="stat-card glass-card hidden" data-animation="zoom-in" style="animation-delay: 0.2s;">
                     <span class="stat-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
@@ -257,7 +273,7 @@
                             <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
                         </svg>
                     </span>
-                    <h3 class="counter" data-target="400">0</h3>
+                    <h3 class="counter" id="video-count-counter" data-target="30">30</h3>
                     <p>Videos Created</p>
                 </div>
             </div>
@@ -269,14 +285,13 @@
         <div class="container">
             <div class="youtube-header hidden" data-animation="fade-up">
                 <h2 class="section-title">Latest Content</h2>
-                <a href="https://youtube.com/@amitkushwaha0018" class="btn btn-primary yt-subscribe">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                        fill="currentColor" stroke="none">
-                        <path
-                            d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z" />
-                        <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#fff" />
-                    </svg>
-                    Subscribe
+                <a href="https://youtube.com/@amitkushwaha0018" target="_blank" rel="noopener noreferrer" class="yt-subscribe-btn" id="yt-subscribe-btn">
+                    <span class="yt-btn-content">
+                        <svg class="yt-btn-icon play-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                        <span class="yt-btn-text" id="yt-btn-text">Subscribe</span>
+                    </span>
                 </a>
             </div>
 
@@ -284,7 +299,12 @@
             <div class="youtube-grid">
                 <!-- Shorts Column -->
                 <div class="yt-column hidden" data-animation="fade-up-stagger">
-                    <h3 class="column-title">Recent Shorts</h3>
+                    <h3 class="column-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="#FF0000" style="vertical-align: middle; filter: drop-shadow(0 0 6px rgba(255, 0, 0, 0.4)); flex-shrink: 0;">
+                            <path d="M17.77 10.32l-1.2-.5L18 9.06c1.84-.96 2.53-3.23 1.56-5.06s-3.24-2.53-5.07-1.56L6.5 6.43C4.84 7.29 4 9.03 4.22 10.88c.2 1.63 1.25 3.01 2.76 3.61l1.2.5L6.7 15.72c-1.84.96-2.53 3.23-1.56 5.06 1 1.87 3.27 2.54 5.07 1.56l7.99-3.99c1.66-.86 2.5-2.6 2.28-4.45-.2-1.63-1.25-3.01-2.71-3.58zM10 14.65V9.35L15 12l-5 2.65z"/>
+                        </svg>
+                        <span>Shorts</span>
+                    </h3>
                     <div class="shorts-container" id="youtube-shorts-container">
                         <p style="color: var(--text-secondary); text-align: center; width: 100%; padding: 3rem 0;">
                             Loading
@@ -294,7 +314,12 @@
 
                 <!-- Videos Column -->
                 <div class="yt-column hidden" data-animation="fade-up-stagger">
-                    <h3 class="column-title">Recent Videos</h3>
+                    <h3 class="column-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#FF0000" style="vertical-align: middle; filter: drop-shadow(0 0 6px rgba(255, 0, 0, 0.4)); flex-shrink: 0;">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                        <span>Videos</span>
+                    </h3>
                     <div class="videos-container" id="youtube-videos-container">
                         <div class="video-wrapper widescreen glass-card"
                             style="display: flex; align-items: center; justify-content: center; min-height: 250px;">
@@ -434,13 +459,12 @@
                         <label for="feedback-name"
                             style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem; font-weight: 500;">Your
                             Name</label>
-                        <input type="text" id="feedback-name" name="name" placeholder="" required class="form-control"
+                        <input type="text" id="feedback-name" name="name" placeholder="E.g., Amit Kushwaha" required class="form-control"
                             style="background: rgba(0,0,0,0.15);">
                     </div>
                     <div>
                         <label for="feedback-title"
-                            style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem; font-weight: 500;">Subject
-                            Line</label>
+                            style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem; font-weight: 500;">Subject</label>
                         <input type="text" id="feedback-title" name="subject" placeholder="E.g., Great Video Idea!"
                             required class="form-control" style="background: rgba(0,0,0,0.15);">
                     </div>
