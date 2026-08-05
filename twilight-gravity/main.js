@@ -169,43 +169,52 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape') closeStreamVaultModal();
     });
 
-    // Custom Cursor Logic
+    // Custom Cursor Logic — Desktop Only (Completely hidden on all touch/mobile devices)
     const cursor = document.getElementById('custom-cursor');
+    const isMobileDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 768);
+
     if (cursor) {
-        let cursorX = window.innerWidth / 2;
-        let cursorY = window.innerHeight / 2;
-        let isCursorMoving = false;
+        if (isMobileDevice) {
+            // Completely disable cursor on mobile — hide it immediately
+            cursor.style.display = 'none';
+            cursor.style.visibility = 'hidden';
+            cursor.style.opacity = '0';
+            cursor.style.pointerEvents = 'none';
+        } else {
+            let cursorX = window.innerWidth / 2;
+            let cursorY = window.innerHeight / 2;
+            let isCursorMoving = false;
 
-        const renderCursor = () => {
-            cursor.style.transform = `translate(${cursorX - 10}px, ${cursorY - 10}px)`;
-            isCursorMoving = false;
-        };
+            const renderCursor = () => {
+                cursor.style.transform = `translate(${cursorX - 10}px, ${cursorY - 10}px)`;
+                isCursorMoving = false;
+            };
 
-        const updateCursorPos = (x, y) => {
-            cursorX = x;
-            cursorY = y;
-            if (!isCursorMoving) {
-                isCursorMoving = true;
-                requestAnimationFrame(renderCursor);
-            }
-        };
+            const updateCursorPos = (x, y) => {
+                cursorX = x;
+                cursorY = y;
+                if (!isCursorMoving) {
+                    isCursorMoving = true;
+                    requestAnimationFrame(renderCursor);
+                }
+            };
 
-        document.addEventListener('mousemove', e => updateCursorPos(e.clientX, e.clientY));
-        document.addEventListener('touchmove', e => updateCursorPos(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
-        document.addEventListener('touchstart', e => updateCursorPos(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+            // Desktop mouse tracking only — no touch events on cursor
+            document.addEventListener('mousemove', e => updateCursorPos(e.clientX, e.clientY));
 
-        // Global Event Delegation for Custom Cursor Hover (Works on Modals, Dynamic Buttons & Links)
-        document.addEventListener('mouseover', e => {
-            if (e.target.closest('a, button, input, textarea, select, .chip, .sv-chip, .btn, .sv-btn-primary, .sv-btn-secondary, .download-btn, .sv-close-btn, .magnetic-element')) {
-                cursor.classList.add('hover');
-            }
-        });
+            // Hover effects — desktop only
+            document.addEventListener('mouseover', e => {
+                if (e.target.closest('a, button, input, textarea, select, .chip, .sv-chip, .btn, .sv-btn-primary, .sv-btn-secondary, .download-btn, .sv-close-btn, .magnetic-element')) {
+                    cursor.classList.add('hover');
+                }
+            });
 
-        document.addEventListener('mouseout', e => {
-            if (e.target.closest('a, button, input, textarea, select, .chip, .sv-chip, .btn, .sv-btn-primary, .sv-btn-secondary, .download-btn, .sv-close-btn, .magnetic-element')) {
-                cursor.classList.remove('hover');
-            }
-        });
+            document.addEventListener('mouseout', e => {
+                if (e.target.closest('a, button, input, textarea, select, .chip, .sv-chip, .btn, .sv-btn-primary, .sv-btn-secondary, .download-btn, .sv-close-btn, .magnetic-element')) {
+                    cursor.classList.remove('hover');
+                }
+            });
+        }
     }
 
     // Haptic Feedback Logic
@@ -2021,10 +2030,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+// Disable custom cursor on touch devices entirely
+const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+if (isTouchDevice) {
+    const cursor = document.getElementById('custom-cursor');
+    if (cursor) cursor.style.display = 'none';
+}
+
 const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+// Localhost: use full URL with port. Live deployed domain (mobile+desktop): use '' (relative same-origin URL)
 const API_BASE_URL = isLocalHost 
   ? (window.location.port ? `${window.location.protocol}//${window.location.hostname}:${window.location.port}` : 'http://127.0.0.1:5000')
-  : window.location.origin;
+  : '';
 
 let currentVideoData = null;
 
