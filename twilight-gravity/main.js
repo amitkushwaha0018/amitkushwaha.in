@@ -36,16 +36,19 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.add('modal-open');
             document.body.style.overflow = 'hidden';
 
-            // Auto-focus input box so blinking text cursor appears immediately on desktop & mobile
-            setTimeout(() => {
-                const videoUrlInput = document.getElementById('video-url');
-                if (videoUrlInput) {
-                    videoUrlInput.focus();
-                    try {
-                        videoUrlInput.setSelectionRange(videoUrlInput.value.length, videoUrlInput.value.length);
-                    } catch (e) {}
-                }
-            }, 300);
+            // Auto-focus input box on desktop devices only (prevents unwanted mobile virtual keyboard popup)
+            const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 768);
+            if (!isTouchDevice) {
+                setTimeout(() => {
+                    const videoUrlInput = document.getElementById('video-url');
+                    if (videoUrlInput) {
+                        videoUrlInput.focus();
+                        try {
+                            videoUrlInput.setSelectionRange(videoUrlInput.value.length, videoUrlInput.value.length);
+                        } catch (e) {}
+                    }
+                }, 300);
+            }
         }
     };
 
@@ -2018,9 +2021,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-const API_BASE_URL = (window.location.protocol === 'file:' || !window.location.port || window.location.port !== '5000')
-  ? 'http://127.0.0.1:5000'
-  : '';
+const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+const API_BASE_URL = isLocalHost 
+  ? (window.location.port ? `${window.location.protocol}//${window.location.hostname}:${window.location.port}` : 'http://127.0.0.1:5000')
+  : window.location.origin;
 
 let currentVideoData = null;
 
