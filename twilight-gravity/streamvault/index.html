@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StreamVault Pro - YouTube 4K Downloader & Precision Media Trimmer</title>
+  <meta name="description" content="Ultra-fast 4K YouTube Video & Audio Downloader & Trimmer. Download lossless MP4, 320kbps MP3, or trim specific clips in original YouTube quality.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Animated Background Orbs & Mesh -->
+  <div class="bg-grid-overlay"></div>
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+  <div class="glow-orb orb-3"></div>
+
+  <div class="app-container">
+    <!-- Header Navbar -->
+    <header class="navbar">
+      <div class="logo">
+        <a href="/home" class="back-home-link" title="Back to Main Website"><i class="fa-solid fa-arrow-left"></i> Main Site</a>
+        <div class="logo-icon-bg">
+          <i class="fa-solid fa-cloud-arrow-down logo-icon"></i>
+        </div>
+        <span>Stream<span class="gradient-text">Vault</span><span class="pro-tag">PRO</span></span>
+      </div>
+      <div class="nav-badges">
+        <span class="badge badge-cyan"><i class="fa-solid fa-scissors"></i> Media Trimmer</span>
+        <span class="badge badge-purple"><i class="fa-solid fa-film"></i> 4K 60fps</span>
+        <span class="badge badge-green"><i class="fa-solid fa-shield-check"></i> Bit-for-Bit Lossless</span>
+      </div>
+    </header>
+
+    <!-- Main Hero Section -->
+    <main class="hero">
+      <div class="hero-badge-pill">
+        <span class="pill-dot"></span> Next-Gen YouTube Downloader & Trimmer
+      </div>
+      <h1 class="hero-title">
+        Download & Trim <br><span class="gradient-text">YouTube Media</span> in Original Quality
+      </h1>
+      <p class="hero-subtitle">
+        Extract 4K Ultra HD videos, 320kbps MP3 audio, or cut exact video clips with millisecond accuracy and zero quality loss.
+      </p>
+
+      <!-- URL Input Box -->
+      <div class="input-card">
+        <div class="input-wrapper">
+          <div class="icon-box">
+            <i class="fa-brands fa-youtube youtube-icon"></i>
+          </div>
+          <input 
+            type="text" 
+            id="video-url" 
+            placeholder="Paste YouTube Video URL here... (e.g. https://www.youtube.com/watch?v=...)"
+            autocomplete="off"
+          />
+          <button id="paste-btn" class="btn-secondary" title="Paste from Clipboard">
+            <i class="fa-regular fa-clipboard"></i> <span>Paste</span>
+          </button>
+          <button id="fetch-btn" class="btn-primary">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>Fetch Media</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Alert / Status Banner -->
+      <div id="status-banner" class="status-banner hidden">
+        <i class="fa-solid fa-circle-notch fa-spin status-spinner"></i>
+        <span id="status-message">Fetching video metadata...</span>
+      </div>
+
+      <!-- Results Container -->
+      <div id="result-container" class="result-card hidden">
+        <!-- Video Meta Header -->
+        <div class="video-meta">
+          <div class="thumbnail-wrapper">
+            <img id="meta-thumb" src="" alt="Video Thumbnail" />
+            <span id="meta-duration" class="duration-badge"><i class="fa-regular fa-clock"></i> 00:00</span>
+          </div>
+          <div class="video-info">
+            <h2 id="meta-title" class="video-title">Video Title Goes Here</h2>
+            <div class="channel-meta">
+              <span class="meta-item"><i class="fa-solid fa-circle-user"></i> <strong id="meta-channel">Channel Name</strong></span>
+              <span class="meta-item"><i class="fa-solid fa-eye"></i> <span id="meta-views">0</span> views</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trimmer Section -->
+        <div class="trimmer-card">
+          <div class="trimmer-header">
+            <label class="toggle-switch">
+              <input type="checkbox" id="enable-trimmer" onchange="toggleTrimmer()">
+              <span class="slider"></span>
+            </label>
+            <div class="trimmer-title">
+              <i class="fa-solid fa-scissors"></i>
+              <span>Enable Precision Video & Audio Trimmer</span>
+            </div>
+            <span id="trim-duration-badge" class="trim-badge hidden">Selected: Full Video</span>
+          </div>
+
+          <div id="trimmer-controls" class="trimmer-body hidden">
+            <div class="trim-inputs-grid">
+              <div class="trim-field">
+                <label for="trim-start"><i class="fa-solid fa-play"></i> Start Timestamp (hh:mm:ss):</label>
+                <input type="text" id="trim-start" placeholder="00:00:00" value="00:00:00" oninput="updateTrimDuration()">
+              </div>
+              <div class="trim-field">
+                <label for="trim-end"><i class="fa-solid fa-stop"></i> End Timestamp (hh:mm:ss):</label>
+                <input type="text" id="trim-end" placeholder="00:00:30" oninput="updateTrimDuration()">
+              </div>
+            </div>
+
+            <!-- Quick Presets -->
+            <div class="preset-chips">
+              <span class="preset-label">Quick Time Presets:</span>
+              <button class="chip" onclick="applyPreset('reset')">Full Video</button>
+              <button class="chip" onclick="applyPreset(30)">First 30s</button>
+              <button class="chip" onclick="applyPreset(60)">First 1 Min</button>
+              <button class="chip" onclick="applyPreset(300)">First 5 Mins</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Format Switcher Tabs -->
+        <div class="format-tabs">
+          <button id="tab-video" class="tab-btn active" onclick="switchTab('video')">
+            <i class="fa-solid fa-film"></i> Video (MP4 / WebM)
+          </button>
+          <button id="tab-audio" class="tab-btn" onclick="switchTab('audio')">
+            <i class="fa-solid fa-music"></i> Audio (MP3 / M4A)
+          </button>
+        </div>
+
+        <!-- Format Cards Container -->
+        <div class="format-section">
+          <!-- Video Formats Grid -->
+          <div id="video-formats" class="options-grid"></div>
+
+          <!-- Audio Formats Grid -->
+          <div id="audio-formats" class="options-grid hidden"></div>
+        </div>
+
+        <!-- Download Progress Indicator -->
+        <div id="download-progress-box" class="progress-box hidden">
+          <div class="progress-header">
+            <span id="progress-status-text">Preparing your stream...</span>
+            <span id="progress-percent">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="progress-bar-fill" class="progress-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features Showcase -->
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-box"><i class="fa-solid fa-scissors"></i></div>
+          <h3>Custom Time Trimming</h3>
+          <p>Cut and download exact video or audio segments with millisecond precision.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-box"><i class="fa-solid fa-bolt"></i></div>
+          <h3>4K Ultra HD & 60fps</h3>
+          <p>Extract videos in 4K (2160p), 2K (1440p), 1080p 60fps, or original source formats.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-box"><i class="fa-solid fa-compact-disc"></i></div>
+          <h3>320kbps MP3 Audio</h3>
+          <p>Rip pristine audio tracks in crisp 320kbps MP3 or native untouched M4A formats.</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>StreamVault Pro &copy; 2026 | Built for Amit Kushwaha Website.</p>
+      <p class="localhost-info"><i class="fa-solid fa-server"></i> Server Active at <code>http://127.0.0.1:5000</code></p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

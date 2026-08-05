@@ -12,9 +12,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Clean Subdirectory URL Path Routing for Mobile & Desktop (/home, /experience, /youtube, /contact, /stats, /feedback)
+    // Clean Subdirectory URL Path Routing for Mobile & Desktop (/home, /experience, /youtube, /ytdownloader, /streamvault, /contact, /stats, /feedback)
     const currentPath = window.location.pathname.replace('/', '').toLowerCase();
-    const validSections = ['home', 'experience', 'youtube', 'contact', 'stats', 'feedback'];
+    const validSections = ['home', 'experience', 'youtube', 'ytdownloader', 'streamvault', 'contact', 'stats', 'feedback'];
+
+    const openStreamVaultModal = () => {
+        const modal = document.getElementById('streamvault-modal');
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        // Close mobile menu drawer if open
+        if (hamburger && hamburger.classList.contains('active')) {
+            hamburger.classList.remove('active');
+            hamburger.setAttribute('aria-expanded', 'false');
+        }
+        if (mobileMenu && mobileMenu.classList.contains('open')) {
+            mobileMenu.classList.remove('open');
+        }
+
+        if (modal) {
+            hideResultCard();
+            modal.classList.add('active');
+            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
+
+            // Auto-focus input box so blinking text cursor appears immediately on desktop & mobile
+            setTimeout(() => {
+                const videoUrlInput = document.getElementById('video-url');
+                if (videoUrlInput) {
+                    videoUrlInput.focus();
+                    try {
+                        videoUrlInput.setSelectionRange(videoUrlInput.value.length, videoUrlInput.value.length);
+                    } catch (e) {}
+                }
+            }, 300);
+        }
+    };
+
+    const closeStreamVaultModal = () => {
+        const modal = document.getElementById('streamvault-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            if (window.location.protocol.startsWith('http') && (window.location.pathname.includes('ytdownloader') || window.location.pathname.includes('streamvault'))) {
+                window.history.pushState({}, document.title, '/home');
+            }
+        }
+    };
 
     if (currentPath && validSections.includes(currentPath)) {
         if (currentPath === 'feedback') {
@@ -25,6 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.body.classList.add('modal-open');
                 }
             }, 600);
+        } else if (currentPath === 'ytdownloader' || currentPath === 'streamvault') {
+            setTimeout(openStreamVaultModal, 400);
         } else {
             setTimeout(() => {
                 const target = document.getElementById(currentPath);
@@ -35,24 +82,88 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Intercept nav link clicks (#home, #experience, /home, /youtube etc.) — smooth scroll
+    // Dropdown Toggle Handler (Supports Mobile Touch & Desktop Click)
+    document.querySelectorAll('.nav-dropdown-toggle').forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const dropdownItem = toggle.closest('.nav-item-dropdown');
+            if (dropdownItem) {
+                dropdownItem.classList.toggle('active');
+            }
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.nav-item-dropdown')) {
+            document.querySelectorAll('.nav-item-dropdown.active').forEach(item => item.classList.remove('active'));
+        }
+    });
+
+    // Intercept nav link clicks (#home, #experience, /home, /youtube, /ytdownloader, /streamvault etc.)
     document.querySelectorAll('a[href^="#"], a[href^="/"]').forEach(link => {
         const href = link.getAttribute('href');
         if (!href || href === '/' || href === '#') return;
         const section = href.replace('/', '').replace('#', '');
-        const validSections = ['home', 'experience', 'youtube', 'contact', 'stats'];
+        const validSections = ['home', 'experience', 'youtube', 'ytdownloader', 'streamvault', 'contact', 'stats'];
         if (validSections.includes(section)) {
             link.addEventListener('click', e => {
                 e.preventDefault();
-                const target = document.getElementById(section);
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
+                if (section === 'ytdownloader' || section === 'streamvault') {
+                    openStreamVaultModal();
                     if (window.location.protocol.startsWith('http')) {
-                        window.history.pushState({}, document.title, '/' + section);
+                        window.history.pushState({}, document.title, '/ytdownloader');
+                    }
+                } else {
+                    const target = document.getElementById(section);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                        if (window.location.protocol.startsWith('http')) {
+                            window.history.pushState({}, document.title, '/' + section);
+                        }
                     }
                 }
             });
         }
+    });
+
+    // Mobile Sidebar "More" Accordion Toggle Handler
+    const mobileMoreToggle = document.getElementById('mobile-more-toggle');
+    const mobileMoreSubmenu = document.getElementById('mobile-more-submenu');
+
+    if (mobileMoreToggle && mobileMoreSubmenu) {
+        mobileMoreToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            mobileMoreSubmenu.classList.toggle('hidden');
+            const parent = mobileMoreToggle.closest('.mobile-dropdown-item');
+            if (parent) parent.classList.toggle('open');
+        });
+    }
+
+    // Dedicated Click Handlers ONLY for YT Video Downloader links
+    document.querySelectorAll('a[href*="ytdownloader"], a[href*="streamvault"], .mobile-streamvault-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            openStreamVaultModal();
+            if (window.location.protocol.startsWith('http')) {
+                window.history.pushState({}, document.title, '/ytdownloader');
+            }
+        });
+    });
+
+    // StreamVault Modal Close Listener
+    const closeSvBtn = document.getElementById('close-streamvault-btn');
+    const svModal = document.getElementById('streamvault-modal');
+    if (closeSvBtn) closeSvBtn.addEventListener('click', closeStreamVaultModal);
+    if (svModal) {
+        svModal.addEventListener('click', e => {
+            if (e.target === svModal) closeStreamVaultModal();
+        });
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeStreamVaultModal();
     });
 
     // Custom Cursor Logic
@@ -79,30 +190,28 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('mousemove', e => updateCursorPos(e.clientX, e.clientY));
         document.addEventListener('touchmove', e => updateCursorPos(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
         document.addEventListener('touchstart', e => updateCursorPos(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+
+        // Global Event Delegation for Custom Cursor Hover (Works on Modals, Dynamic Buttons & Links)
+        document.addEventListener('mouseover', e => {
+            if (e.target.closest('a, button, input, textarea, select, .chip, .sv-chip, .btn, .sv-btn-primary, .sv-btn-secondary, .download-btn, .sv-close-btn, .magnetic-element')) {
+                cursor.classList.add('hover');
+            }
+        });
+
+        document.addEventListener('mouseout', e => {
+            if (e.target.closest('a, button, input, textarea, select, .chip, .sv-chip, .btn, .sv-btn-primary, .sv-btn-secondary, .download-btn, .sv-close-btn, .magnetic-element')) {
+                cursor.classList.remove('hover');
+            }
+        });
     }
 
-    // Hover & Haptic Feedback Logic
-    const interactiveElements = document.querySelectorAll('a, button, .magnetic-element, input, textarea');
-    interactiveElements.forEach(el => {
-
-        // Add hover effect to custom cursor if it exists AND modal is not open
-        if (cursor) {
-            el.addEventListener('mouseenter', () => {
-                if (!document.body.classList.contains('modal-open')) {
-                    cursor.classList.add('hover');
-                }
-            });
-            el.addEventListener('mouseleave', () => {
-                cursor.classList.remove('hover');
-            });
-        }
-
-        // Add mobile haptic feedback on click (10ms micro-vibration)
-        el.addEventListener('click', () => {
+    // Haptic Feedback Logic
+    document.addEventListener('click', e => {
+        if (e.target.closest('a, button, input, textarea')) {
             if (navigator.vibrate) {
                 navigator.vibrate(10);
             }
-        });
+        }
     });
 
     // Advanced Magnetic Button Physics
@@ -275,7 +384,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 hamburger.classList.remove('active');
                 mobileMenu.classList.remove('open');
                 hamburger.setAttribute('aria-expanded', 'false');
-                document.body.style.overflow = '';
+                if (!document.body.classList.contains('modal-open')) {
+                    document.body.style.overflow = '';
+                }
             }
         });
     });
@@ -1850,5 +1961,652 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
+    // ==============================================================
+    // StreamVault Pro Downloader & Precision Trimmer Logic
+    // ==============================================================
+    const videoUrlInput = document.getElementById('video-url');
+    const clearUrlBtn = document.getElementById('clear-url-btn');
+    const fetchBtn = document.getElementById('fetch-btn');
+
+    if (videoUrlInput) {
+        const updateClearBtn = () => {
+            if (clearUrlBtn && videoUrlInput) {
+                if (videoUrlInput.value.trim().length > 0) {
+                    clearUrlBtn.classList.remove('hidden');
+                    clearUrlBtn.classList.add('active');
+                    clearUrlBtn.style.display = 'flex';
+                } else {
+                    clearUrlBtn.classList.add('hidden');
+                    clearUrlBtn.classList.remove('active');
+                    clearUrlBtn.style.display = 'none';
+                }
+            }
+        };
+
+        // Run updateClearBtn initially to guarantee hidden on startup
+        updateClearBtn();
+
+        videoUrlInput.addEventListener('input', updateClearBtn);
+        videoUrlInput.addEventListener('keyup', updateClearBtn);
+        videoUrlInput.addEventListener('change', updateClearBtn);
+        videoUrlInput.addEventListener('paste', () => setTimeout(updateClearBtn, 50));
+
+        videoUrlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                processUrl();
+            }
+        });
+    }
+
+    if (clearUrlBtn) {
+        clearUrlBtn.addEventListener('click', () => {
+            if (videoUrlInput) videoUrlInput.value = '';
+            clearUrlBtn.classList.add('hidden');
+            clearUrlBtn.classList.remove('active');
+            clearUrlBtn.style.display = 'none';
+            hideResultCard();
+            hideStatus();
+            currentVideoData = null;
+        });
+    }
+
+    if (fetchBtn) {
+        fetchBtn.addEventListener('click', () => {
+            processUrl();
+        });
+    }
+
 });
+
+const API_BASE_URL = (window.location.protocol === 'file:' || !window.location.port || window.location.port !== '5000')
+  ? 'http://127.0.0.1:5000'
+  : '';
+
+let currentVideoData = null;
+
+async function processUrl() {
+  const input = document.getElementById('video-url');
+  const fetchBtn = document.getElementById('fetch-btn');
+  const inputCard = document.querySelector('.sv-input-card');
+  const url = input ? input.value.trim() : '';
+
+  if (!url) {
+    showStatus('Please enter a YouTube video URL.', 'error');
+    return;
+  }
+
+  if (!isValidYoutubeUrl(url)) {
+    showStatus('Invalid YouTube URL! Please enter a valid youtube.com or youtu.be link.', 'error');
+    return;
+  }
+
+  // Visual Loading State on Button and Input Card
+  if (fetchBtn) {
+    fetchBtn.disabled = true;
+    fetchBtn.classList.add('loading');
+    fetchBtn.innerHTML = `
+      <svg class="sv-spin-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+      <span>Fetching Media...</span>
+    `;
+  }
+  if (inputCard) inputCard.classList.add('is-fetching');
+
+  showStatus('⚡ Connecting to YouTube Engine... Extracting 4K Video & MP3 Audio Streams...', 'info', true);
+  hideResultCard();
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/info`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || data.error) {
+      showStatus(data.error || 'Failed to fetch video details.', 'error');
+      return;
+    }
+
+    currentVideoData = data;
+    currentVideoData.original_url = url;
+    displayResults(data);
+    hideStatus();
+
+  } catch (err) {
+    showStatus(`Connection error: ${err.message}. Please verify the server is running.`, 'error');
+  } finally {
+    if (fetchBtn) {
+      fetchBtn.disabled = false;
+      fetchBtn.classList.remove('loading');
+      fetchBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        <span>Fetch Media</span>
+      `;
+    }
+    if (inputCard) inputCard.classList.remove('is-fetching');
+  }
+}
+
+function displayResults(data) {
+  const thumb = document.getElementById('meta-thumb');
+  const title = document.getElementById('meta-title');
+  const channel = document.getElementById('meta-channel');
+  const views = document.getElementById('meta-views');
+  const duration = document.getElementById('meta-duration');
+
+  if (thumb) thumb.src = data.thumbnail;
+  if (title) title.textContent = data.title;
+  if (channel) channel.textContent = data.channel;
+  if (views) views.textContent = data.views;
+  if (duration) duration.textContent = data.duration;
+
+  const trimmerCheck = document.getElementById('enable-trimmer');
+  const trimmerControls = document.getElementById('trimmer-controls');
+  const trimBadge = document.getElementById('trim-duration-badge');
+  const startInput = document.getElementById('trim-start');
+  const endInput = document.getElementById('trim-end');
+  const labelStart = document.getElementById('label-trim-start');
+  const labelEnd = document.getElementById('label-trim-end');
+
+  const isLongVideo = data.duration_sec && data.duration_sec >= 3600;
+  const fullDurationStr = formatSecondsToTime(data.duration_sec || 60);
+
+  if (labelStart) labelStart.textContent = isLongVideo ? "▶ Start Timestamp (hh:mm:ss):" : "▶ Start Timestamp (mm:ss):";
+  if (labelEnd) labelEnd.textContent = isLongVideo ? "⏹ End Timestamp (hh:mm:ss):" : "⏹ End Timestamp (mm:ss):";
+
+  if (trimmerCheck) trimmerCheck.checked = false;
+  if (trimmerControls) trimmerControls.classList.add('hidden');
+  if (trimBadge) trimBadge.classList.add('hidden');
+  
+  if (startInput) {
+    startInput.value = "";
+    startInput.placeholder = isLongVideo ? "00:00:00 (Start)" : "00:00 (Start)";
+  }
+  
+  if (endInput) {
+    endInput.value = "";
+    endInput.placeholder = `${fullDurationStr} (Full Video)`;
+  }
+
+  renderVideoFormats(data.video_options);
+  renderAudioFormats(data.audio_options);
+
+  switchTab('video');
+
+  // Strictly keep progress box hidden until user clicks a download button
+  const progressBox = document.getElementById('download-progress-box');
+  if (progressBox) {
+    progressBox.classList.add('hidden');
+    progressBox.style.display = 'none';
+  }
+
+  const resultContainer = document.getElementById('result-container');
+  if (resultContainer) resultContainer.classList.remove('hidden');
+}
+
+function toggleTrimmer() {
+  const trimmerCheck = document.getElementById('enable-trimmer');
+  const controls = document.getElementById('trimmer-controls');
+  const badge = document.getElementById('trim-duration-badge');
+
+  if (trimmerCheck && trimmerCheck.checked) {
+    if (controls) controls.classList.remove('hidden');
+    if (badge) badge.classList.remove('hidden');
+    updateTrimDuration();
+  } else {
+    if (controls) controls.classList.add('hidden');
+    if (badge) badge.classList.add('hidden');
+  }
+}
+
+function applyPreset(preset) {
+  if (!currentVideoData) return;
+  const startInput = document.getElementById('trim-start');
+  const endInput = document.getElementById('trim-end');
+  if (!startInput || !endInput) return;
+
+  const isLongVideo = currentVideoData.duration_sec && currentVideoData.duration_sec >= 3600;
+
+  if (preset === 'reset') {
+    startInput.value = "";
+    endInput.value = "";
+  } else if (typeof preset === 'number') {
+    startInput.value = isLongVideo ? "00:00:00" : "00:00";
+    const endSec = Math.min(preset, currentVideoData.duration_sec || preset);
+    endInput.value = formatSecondsToTime(endSec);
+  }
+  updateTrimDuration();
+}
+
+function updateTrimDuration() {
+  const startInput = document.getElementById('trim-start');
+  const endInput = document.getElementById('trim-end');
+  const badge = document.getElementById('trim-duration-badge');
+  if (!startInput || !endInput || !badge) return;
+
+  const rawStart = startInput.value.trim();
+  const rawEnd = endInput.value.trim();
+
+  if (rawStart && !isValidTimestampFormat(rawStart)) {
+    badge.textContent = '⚠️ Invalid Start Format (Max 2 digits after colon)';
+    badge.style.background = 'rgba(239, 68, 68, 0.2)';
+    badge.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+    badge.style.color = '#ef4444';
+    return;
+  }
+
+  if (rawEnd && !isValidTimestampFormat(rawEnd)) {
+    badge.textContent = '⚠️ Invalid End Format (Max 2 digits after colon)';
+    badge.style.background = 'rgba(239, 68, 68, 0.2)';
+    badge.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+    badge.style.color = '#ef4444';
+    return;
+  }
+
+  // Default to 0 seconds if start input is empty
+  const startSec = rawStart ? timeToSeconds(rawStart) : 0;
+  
+  // Default to total duration if end input is empty
+  const totalDuration = (currentVideoData && currentVideoData.duration_sec) ? currentVideoData.duration_sec : 60;
+  const endSec = rawEnd ? timeToSeconds(rawEnd) : totalDuration;
+
+  if (startSec !== null && endSec !== null && endSec > startSec) {
+    const diff = endSec - startSec;
+    badge.textContent = `✂ Selected Clip: ${formatSecondsToTime(diff)}`;
+    badge.style.background = 'rgba(6, 182, 212, 0.2)';
+    badge.style.borderColor = 'rgba(6, 182, 212, 0.4)';
+    badge.style.color = '#06b6d4';
+  } else {
+    badge.textContent = '⚠️ Invalid Time Range (Start must be before End)';
+    badge.style.background = 'rgba(239, 68, 68, 0.2)';
+    badge.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+    badge.style.color = '#ef4444';
+  }
+}
+
+function renderVideoFormats(options) {
+  const container = document.getElementById('video-formats');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!options || options.length === 0) {
+    container.innerHTML = '<p style="color: #94a3b8; padding: 1rem; text-align: center; grid-column: 1/-1;">No specific video resolutions extracted.</p>';
+    return;
+  }
+
+  options.forEach((opt) => {
+    const card = document.createElement('div');
+    card.className = 'glass-card';
+    card.style.padding = '1.1rem 1.25rem';
+    card.style.display = 'flex';
+    card.style.justifyContent = 'space-between';
+    card.style.alignItems = 'center';
+    card.style.background = 'rgba(15, 23, 42, 0.6)';
+    card.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+    card.style.borderRadius = '0.85rem';
+
+    const qualityLabel = opt.quality || '720p';
+    const resText = opt.resolution || `${qualityLabel} HD`;
+
+    card.innerHTML = `
+      <div>
+        <div style="font-weight: 700; color: #ffffff; font-size: 1.05rem; display: flex; align-items: center; gap: 0.4rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff3366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 8 6 4-6 4Z"/></svg>
+          ${resText}
+        </div>
+        <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.25rem;">Format: MP4 • Size: ${opt.filesize_str || 'Original Quality'}</div>
+      </div>
+      <button class="sv-btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 99px; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.3);">
+        Download Video
+      </button>
+    `;
+    const dlBtn = card.querySelector('button');
+    dlBtn.addEventListener('click', () => {
+      startDownload(opt.format_id || 'best', 'video', qualityLabel);
+    });
+    container.appendChild(card);
+  });
+}
+
+function renderAudioFormats(options) {
+  const container = document.getElementById('audio-formats');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!options || options.length === 0) {
+    options = [{ format_id: 'bestaudio/best', quality: '320 kbps', filesize_str: 'High Quality MP3' }];
+  }
+
+  options.forEach((opt) => {
+    const card = document.createElement('div');
+    card.className = 'glass-card';
+    card.style.padding = '1.1rem 1.25rem';
+    card.style.display = 'flex';
+    card.style.justifyContent = 'space-between';
+    card.style.alignItems = 'center';
+    card.style.background = 'rgba(15, 23, 42, 0.6)';
+    card.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+    card.style.borderRadius = '0.85rem';
+
+    const qualityLabel = opt.quality || '320 kbps';
+
+    card.innerHTML = `
+      <div>
+        <div style="font-weight: 700; color: #ffffff; font-size: 1.05rem; display: flex; align-items: center; gap: 0.4rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          MP3 Audio (${qualityLabel})
+        </div>
+        <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.25rem;">Format: MP3 Lossless • Size: ${opt.filesize_str || 'Auto'}</div>
+      </div>
+      <button class="sv-btn-primary" style="background: linear-gradient(135deg, #06b6d4 0%, #0284c7 100%) !important; padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 99px; box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);">
+        Download MP3
+      </button>
+    `;
+    const dlBtn = card.querySelector('button');
+    dlBtn.addEventListener('click', () => {
+      startDownload(opt.format_id || 'bestaudio/best', 'audio', qualityLabel);
+    });
+    container.appendChild(card);
+  });
+}
+
+function switchTab(type) {
+  const tabVideo = document.getElementById('tab-video');
+  const tabAudio = document.getElementById('tab-audio');
+  const videoGrid = document.getElementById('video-formats');
+  const audioGrid = document.getElementById('audio-formats');
+
+  if (type === 'video') {
+    if (tabVideo) tabVideo.classList.add('active');
+    if (tabAudio) tabAudio.classList.remove('active');
+    if (videoGrid) { videoGrid.classList.remove('hidden'); videoGrid.style.display = 'grid'; }
+    if (audioGrid) { audioGrid.classList.add('hidden'); audioGrid.style.display = 'none'; }
+  } else {
+    if (tabAudio) tabAudio.classList.add('active');
+    if (tabVideo) tabVideo.classList.remove('active');
+    if (audioGrid) { audioGrid.classList.remove('hidden'); audioGrid.style.display = 'grid'; }
+    if (videoGrid) { videoGrid.classList.add('hidden'); videoGrid.style.display = 'none'; }
+  }
+}
+
+async function startDownload(formatId, mediaType, quality) {
+  if (!currentVideoData || !currentVideoData.original_url) {
+    showStatus('Invalid download request context. Please re-paste URL.', 'error');
+    return;
+  }
+
+  const progressBox = document.getElementById('download-progress-box');
+  const statusText = document.getElementById('progress-status-text');
+  const percentText = document.getElementById('progress-percent');
+  const fillBar = document.getElementById('progress-bar-fill');
+  const floatingBadge = document.getElementById('progress-floating-badge');
+
+  if (progressBox) {
+    progressBox.classList.remove('hidden');
+    progressBox.style.display = 'block';
+    progressBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  const mediaName = mediaType === 'audio' ? 'MP3 Audio' : 'Video';
+  let currentPct = 8;
+
+  function updateUI(pct, statusMsg) {
+    const rounded = Math.min(Math.max(Math.round(pct), 5), 100);
+    if (fillBar) fillBar.style.width = `${rounded}%`;
+    if (percentText) percentText.textContent = `${rounded}%`;
+    if (floatingBadge) floatingBadge.style.left = `${rounded}%`;
+    if (statusText && statusMsg) statusText.textContent = statusMsg;
+  }
+
+  updateUI(currentPct, `⚡ Connecting & Extracting 100% Original ${mediaName} (${quality})...`);
+
+  let startParam = '';
+  let endParam = '';
+  const trimmerCheck = document.getElementById('enable-trimmer');
+
+  if (trimmerCheck && trimmerCheck.checked) {
+    const sVal = document.getElementById('trim-start').value.trim();
+    const eVal = document.getElementById('trim-end').value.trim();
+    if (sVal) startParam = `&start_time=${encodeURIComponent(sVal)}`;
+    if (eVal) endParam = `&end_time=${encodeURIComponent(eVal)}`;
+    updateUI(currentPct, `✂ Trimming & extracting custom ${mediaName} clip... Please wait.`);
+  }
+
+  const downloadId = 'dl_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+  const downloadUrl = `${API_BASE_URL}/api/download?url=${encodeURIComponent(currentVideoData.original_url)}&format_id=${encodeURIComponent(formatId || 'best')}&type=${encodeURIComponent(mediaType)}&quality=${encodeURIComponent(quality)}&title=${encodeURIComponent(currentVideoData.title)}&download_id=${downloadId}${startParam}${endParam}`;
+
+  let targetPct = 8;
+  let isDone = false;
+
+  // Smooth Interpolated Progress Poller
+  const pollInterval = setInterval(async () => {
+    if (isDone) return;
+
+    try {
+      const pRes = await fetch(`${API_BASE_URL}/api/progress?download_id=${downloadId}`);
+      if (pRes.ok) {
+        const pData = await pRes.json();
+        if (pData && pData.percent !== undefined) {
+          if (pData.status === 'downloading') {
+            targetPct = Math.max(pData.percent, targetPct);
+            const speedStr = pData.speed_str || "3.5 MB/s";
+            const dlStr = pData.downloaded_str || "0 MB";
+            const totStr = (pData.total_str && pData.total_str !== '0 MB' && pData.total_str !== dlStr) ? ` of ${pData.total_str}` : '';
+            
+            const msg = `⚡ Downloading ${mediaName}: ${dlStr}${totStr} (${Math.round(targetPct)}%) • 🚀 Speed: ${speedStr}`;
+
+            if (currentPct < targetPct) {
+              currentPct += Math.max(1, (targetPct - currentPct) * 0.4);
+            } else {
+              currentPct = Math.min(currentPct + 1, 94);
+            }
+            updateUI(currentPct, msg);
+          } else if (pData.status === 'processing') {
+            targetPct = Math.max(targetPct, 85);
+            if (currentPct < 95) currentPct += 1.5;
+            updateUI(currentPct, `🎬 Trimming & Merging 100% Original Streams... Please wait.`);
+          }
+        }
+      }
+    } catch (e) {
+      if (currentPct < 90) {
+        currentPct += 1;
+        updateUI(currentPct, `⚡ Processing ${mediaName}... Please wait.`);
+      }
+    }
+  }, 250);
+
+  try {
+    const res = await fetch(downloadUrl);
+    if (!res.ok) {
+      let errMsg = `Server error (Status ${res.status})`;
+      try {
+        const errData = await res.json();
+        if (errData && errData.error) errMsg = errData.error;
+      } catch (e) {}
+      throw new Error(errMsg);
+    }
+
+    const blob = await res.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    isDone = true;
+    clearInterval(pollInterval);
+    updateUI(100, '✅ Download Complete! File saved to your device.');
+
+    const disposition = res.headers.get('Content-Disposition');
+    let filename = `${currentVideoData.title}.${mediaType === 'audio' ? 'mp3' : 'mp4'}`;
+    if (disposition && disposition.includes('filename=')) {
+      filename = disposition.split('filename=')[1].replace(/["']/g, '');
+    }
+
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setTimeout(() => {
+      window.URL.revokeObjectURL(blobUrl);
+      if (progressBox) progressBox.classList.add('hidden');
+      if (fillBar) fillBar.style.width = '0%';
+    }, 6000);
+
+  } catch (err) {
+    isDone = true;
+    clearInterval(pollInterval);
+    if (fillBar) fillBar.style.width = '0%';
+    if (percentText) percentText.textContent = 'Failed';
+    if (statusText) statusText.textContent = `❌ Download Failed: ${err.message}`;
+    showStatus(`Download Error: ${err.message}`, 'error');
+  }
+}
+
+function isValidYoutubeUrl(url) {
+  return /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/.test(url);
+}
+
+function sanitizeTimeInput(input) {
+  if (!input) return;
+  let val = input.value;
+
+  // Allow digits and colons only
+  val = val.replace(/[^0-9:]/g, '');
+
+  const isLongVideo = currentVideoData && currentVideoData.duration_sec && currentVideoData.duration_sec >= 3600;
+
+  // Auto-insert colons after 2 digits as user types
+  const rawDigits = val.replace(/:/g, '');
+
+  if (!val.includes(':')) {
+    if (rawDigits.length === 2 && input.value.length === 2) {
+      val = rawDigits + ':';
+    } else if (rawDigits.length >= 4 && !isLongVideo) {
+      val = rawDigits.substring(0, 2) + ':' + rawDigits.substring(2, 4);
+    } else if (rawDigits.length >= 6 && isLongVideo) {
+      val = rawDigits.substring(0, 2) + ':' + rawDigits.substring(2, 4) + ':' + rawDigits.substring(4, 6);
+    }
+  }
+
+  // Prevent typing 3 digits after a colon (e.g. ":300" -> ":30", ":023" -> ":02")
+  val = val.replace(/(:[0-9]{2})[0-9]+/g, '$1');
+
+  // Cap max length (MM:SS is 5 chars, HH:MM:SS is 8 chars)
+  const maxLen = isLongVideo ? 8 : 5;
+  if (val.length > maxLen) {
+    val = val.substring(0, maxLen);
+  }
+
+  if (input.value !== val) {
+    input.value = val;
+  }
+}
+
+function isValidTimestampFormat(str) {
+  if (!str) return true;
+  const trimmed = str.trim();
+
+  // Single digit or trailing colon is invalid (must use 2 digits e.g. 02:00)
+  if (/^\d{1}$/.test(trimmed)) return false;
+  if (trimmed.endsWith(':')) return false;
+
+  const parts = trimmed.split(':');
+  if (parts.length > 3) return false;
+
+  // 2 parts: MM:SS
+  if (parts.length === 2) {
+    const [m, s] = parts;
+    if (!/^\d{2}$/.test(m) || !/^\d{2}$/.test(s)) return false;
+    const secNum = parseInt(s, 10);
+    if (isNaN(secNum) || secNum >= 60) return false;
+    return true;
+  }
+
+  // 3 parts: HH:MM:SS
+  if (parts.length === 3) {
+    const [h, m, s] = parts;
+    if (!/^\d{2}$/.test(h) || !/^\d{2}$/.test(m) || !/^\d{2}$/.test(s)) return false;
+    const minNum = parseInt(m, 10);
+    const secNum = parseInt(s, 10);
+    if (isNaN(minNum) || isNaN(secNum) || minNum >= 60 || secNum >= 60) return false;
+    return true;
+  }
+
+  return false;
+}
+
+function timeToSeconds(str) {
+  if (!str) return null;
+  let trimmed = str.trim();
+
+  // Auto-convert 4 digits "0130" -> "01:30"
+  if (/^\d{4}$/.test(trimmed)) {
+    trimmed = trimmed.substring(0, 2) + ':' + trimmed.substring(2, 4);
+  }
+  // Auto-convert 6 digits "011530" -> "01:15:30"
+  else if (/^\d{6}$/.test(trimmed)) {
+    trimmed = trimmed.substring(0, 2) + ':' + trimmed.substring(2, 4) + ':' + trimmed.substring(4, 6);
+  }
+
+  if (!isValidTimestampFormat(trimmed)) return null;
+
+  const parts = trimmed.split(':');
+  try {
+    if (parts.length === 3) {
+      const h = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      const s = parseInt(parts[2], 10);
+      if (m >= 60 || s >= 60) return null;
+      return h * 3600 + m * 60 + s;
+    }
+    if (parts.length === 2) {
+      const m = parseInt(parts[0], 10);
+      const s = parseInt(parts[1], 10);
+      if (s >= 60) return null;
+      return m * 60 + s;
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function formatSecondsToTime(sec) {
+  if (sec === undefined || sec === null || isNaN(sec)) return "00:00";
+  const s = Math.floor(sec);
+  const hrs = Math.floor(s / 3600);
+  const mins = Math.floor((s % 3600) / 60);
+  const secs = s % 60;
+  const isLong = (currentVideoData && currentVideoData.duration_sec && currentVideoData.duration_sec >= 3600) || hrs > 0;
+  
+  return isLong 
+    ? `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+    : `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function showStatus(msg, type = 'info', spinner = false) {
+  const banner = document.getElementById('status-banner');
+  const msgEl = document.getElementById('status-message');
+  if (banner && msgEl) {
+    banner.className = `sv-status-banner ${type}`;
+    msgEl.textContent = msg;
+    banner.classList.remove('hidden');
+  }
+}
+
+function hideStatus() {
+  const banner = document.getElementById('status-banner');
+  if (banner) banner.classList.add('hidden');
+}
+
+function hideResultCard() {
+  const card = document.getElementById('result-container');
+  const progressBox = document.getElementById('download-progress-box');
+  const statusBanner = document.getElementById('status-banner');
+  if (card) card.classList.add('hidden');
+  if (progressBox) progressBox.classList.add('hidden');
+  if (statusBanner) statusBanner.classList.add('hidden');
+}
 

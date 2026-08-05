@@ -32,11 +32,11 @@
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self'; 
         script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://apis.google.com; 
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
-        font-src 'self' https://fonts.gstatic.com; 
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; 
+        font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; 
         img-src 'self' data: https://source.unsplash.com https://images.unsplash.com https://i.ytimg.com https://yt3.ggpht.com https://ui-avatars.com https://picsum.photos https://fastly.picsum.photos https://tse1.mm.bing.net https://tse2.mm.bing.net https://tse3.mm.bing.net https://tse4.mm.bing.net; 
         frame-src 'self' https://www.youtube.com https://apis.google.com;
-        connect-src 'self' https://date.nager.at https://www.googleapis.com https://formsubmit.co https://api.emailjs.com https://api.web3forms.com https://jayantur13.github.io;
+        connect-src 'self' http://127.0.0.1:5000 http://localhost:5000 https://date.nager.at https://www.googleapis.com https://formsubmit.co https://api.emailjs.com https://api.web3forms.com https://jayantur13.github.io;
     ">
 
     <!-- Open Graph for Social Media & SEO -->
@@ -51,8 +51,8 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=apple_translucent_v3">
 
     <!-- Google Official YouTube Subscribe Platform API (Detects real subscriber status) -->
@@ -92,6 +92,19 @@
                 <li><a href="/experience">Experience</a></li>
                 <li><a href="/youtube">YouTube</a></li>
                 <li><a href="/contact">Contact</a></li>
+                <li class="nav-item-dropdown">
+                    <a href="javascript:void(0)" class="nav-dropdown-toggle">More <svg class="dropdown-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></a>
+                    <ul class="nav-dropdown-menu">
+                        <li>
+                            <a href="/ytdownloader" class="dropdown-item-link">
+                                <span class="item-icon" style="display:inline-flex; align-items:center; gap:3px;"><i class="fa-brands fa-youtube" style="color: #FF0000;"></i><i class="fa-solid fa-arrow-down" style="color: #06b6d4; font-size: 0.75rem;"></i></span>
+                                <div class="item-text">
+                                    <span class="item-title">YT Video Downloader</span>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
             <div class="nav-actions">
                 <button class="theme-toggle" id="theme-toggle" aria-label="Toggle Theme">
@@ -125,6 +138,7 @@
             <li><a href="/experience">Experience</a></li>
             <li><a href="/youtube">YouTube</a></li>
             <li><a href="/contact">Contact</a></li>
+            <li><a href="/ytdownloader" class="mobile-streamvault-link">YT Downloader</a></li>
         </ul>
     </aside>
 
@@ -333,6 +347,7 @@
 
         </div>
     </section>
+
     <!-- Contact Section -->
     <section id="contact" class="contact section">
         <div class="container">
@@ -496,6 +511,195 @@
             <div id="feedback-success"
                 style="display: none; margin-top: 1rem; color: #10B981; font-weight: 500; text-align: center;">
                 Thanks for your feedback!
+            </div>
+        </div>
+    </div>
+
+    <!-- StreamVault Pro Popup Modal Overlay -->
+    <div id="streamvault-modal" class="modal-overlay streamvault-modal-overlay">
+        <div class="sv-modal-dialog">
+            <!-- Animated Background Grid & Orbs inside Modal -->
+            <div class="sv-bg-grid-overlay"></div>
+            <div class="sv-glow-orb sv-orb-1"></div>
+            <div class="sv-glow-orb sv-orb-2"></div>
+            <div class="sv-glow-orb sv-orb-3"></div>
+
+            <div class="sv-modal-container">
+                <!-- Modal Close Button -->
+                <button id="close-streamvault-btn" class="sv-close-btn" aria-label="Close StreamVault">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+
+                <!-- Navbar inside Modal -->
+                <header class="sv-navbar">
+                    <div class="sv-logo">
+                        <div class="sv-logo-icon-bg">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="#FF0000" style="filter: drop-shadow(0 0 6px rgba(255, 0, 0, 0.6));">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 6px rgba(6, 182, 212, 0.6));">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </div>
+                        <span>YT Video <span class="sv-gradient-text">Downloader</span><span class="sv-pro-tag">PRO</span></span>
+                    </div>
+                </header>
+
+                <!-- Main Hero Section inside Modal -->
+                <main class="sv-hero">
+                    <h1 class="sv-hero-title">
+                        YT Video <span class="sv-gradient-text">Downloader</span>
+                    </h1>
+                    <p class="sv-hero-subtitle">
+                        Extract 4K Ultra HD videos, 320kbps MP3 audio, or cut exact video clips with millisecond accuracy and zero quality loss.
+                    </p>
+
+                    <!-- URL Input Box -->
+                    <div class="sv-input-card">
+                        <div class="sv-input-wrapper">
+                            <div class="sv-icon-box">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="#FF0000" style="filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.6));">
+                                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                </svg>
+                            </div>
+                            <input 
+                                type="text" 
+                                id="video-url" 
+                                placeholder="Paste YouTube Video URL here... (e.g. https://www.youtube.com/watch?v=...)"
+                                autocomplete="off"
+                            />
+                            <button id="clear-url-btn" class="sv-clear-btn hidden" title="Clear & Reset URL">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                            <button id="fetch-btn" class="sv-btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                                <span>Fetch Media</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Alert / Status Banner -->
+                    <div id="status-banner" class="sv-status-banner hidden">
+                        <i class="fa-solid fa-circle-notch fa-spin sv-status-spinner"></i>
+                        <span id="status-message">Fetching video metadata...</span>
+                    </div>
+
+                    <!-- Results Container -->
+                    <div id="result-container" class="sv-result-card hidden">
+                        <!-- Video Meta Header -->
+                        <div class="sv-video-meta">
+                            <div class="sv-thumbnail-wrapper">
+                                <img id="meta-thumb" src="" alt="Video Thumbnail" />
+                                <span id="meta-duration" class="sv-duration-badge"><i class="fa-regular fa-clock"></i> 00:00</span>
+                            </div>
+                            <div class="sv-video-info">
+                                <h2 id="meta-title" class="sv-video-title">Video Title</h2>
+                                <div class="sv-channel-meta">
+                                    <span class="sv-meta-item"><i class="fa-solid fa-circle-user"></i> <strong id="meta-channel">Channel Name</strong></span>
+                                    <span class="sv-meta-item"><i class="fa-solid fa-eye"></i> <span id="meta-views">0</span> views</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trimmer Section -->
+                        <div class="sv-trimmer-card">
+                            <div class="sv-trimmer-header">
+                                <label class="sv-toggle-switch">
+                                    <input type="checkbox" id="enable-trimmer" onchange="toggleTrimmer()">
+                                    <span class="sv-slider"></span>
+                                </label>
+                                <div class="sv-trimmer-title">
+                                    <i class="fa-solid fa-scissors"></i>
+                                    <span>Enable Precision Video & Audio Trimmer</span>
+                                </div>
+                                <span id="trim-duration-badge" class="sv-trim-badge hidden">Selected: Full Video</span>
+                            </div>
+
+                            <div id="trimmer-controls" class="sv-trimmer-body hidden">
+                                <div class="sv-trim-inputs-grid">
+                                    <div class="sv-trim-field">
+                                        <label for="trim-start" id="label-trim-start">▶ Start Timestamp (hh:mm:ss / mm:ss):</label>
+                                        <input type="text" id="trim-start" placeholder="00:00:00 (Default: Start)" value="" oninput="sanitizeTimeInput(this); updateTrimDuration()" onblur="sanitizeTimeInput(this); updateTrimDuration()" onfocus="this.select()">
+                                    </div>
+                                    <div class="sv-trim-field">
+                                        <label for="trim-end" id="label-trim-end">⏹ End Timestamp (hh:mm:ss / mm:ss):</label>
+                                        <input type="text" id="trim-end" placeholder="Full Video (e.g. 01:20:51)" value="" oninput="sanitizeTimeInput(this); updateTrimDuration()" onblur="sanitizeTimeInput(this); updateTrimDuration()" onfocus="this.select()">
+                                    </div>
+                                </div>
+
+                                <!-- Quick Presets -->
+                                <div class="sv-preset-chips">
+                                    <span class="sv-preset-label">Quick Time Presets:</span>
+                                    <button class="sv-chip" onclick="applyPreset('reset')">Full Video</button>
+                                    <button class="sv-chip" onclick="applyPreset(30)">First 30s</button>
+                                    <button class="sv-chip" onclick="applyPreset(60)">First 1 Min</button>
+                                    <button class="sv-chip" onclick="applyPreset(300)">First 5 Mins</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Format Switcher Tabs -->
+                        <div class="sv-format-tabs">
+                            <button id="tab-video" class="sv-tab-btn active" onclick="switchTab('video')">
+                                <i class="fa-solid fa-film"></i> Video (MP4 / WebM)
+                            </button>
+                            <button id="tab-audio" class="sv-tab-btn" onclick="switchTab('audio')">
+                                <i class="fa-solid fa-music"></i> Audio (MP3 / M4A)
+                            </button>
+                        </div>
+
+                        <!-- Format Cards Container -->
+                        <div class="sv-format-section">
+                            <div id="video-formats" class="sv-options-grid"></div>
+                            <div id="audio-formats" class="sv-options-grid hidden"></div>
+                        </div>
+
+                        <!-- Download Progress Indicator -->
+                        <div id="download-progress-box" class="sv-progress-box hidden">
+                            <div class="sv-progress-status-row">
+                                <span id="progress-status-text">⚡ Preparing 100% Original Media...</span>
+                            </div>
+                            
+                            <div class="sv-progress-track-wrapper">
+                                <!-- Floating Tooltip Badge pointing to the progress tip -->
+                                <div id="progress-floating-badge" class="sv-floating-badge" style="left: 0%;">
+                                    <div id="progress-percent" class="sv-badge-circle">0%</div>
+                                    <div class="sv-badge-pointer"></div>
+                                </div>
+                                
+                                <div class="sv-progress-bar-bg">
+                                    <div id="progress-bar-fill" class="sv-progress-bar-fill" style="width: 0%;">
+                                        <div class="sv-bar-stripes"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Features Showcase -->
+                    <div class="sv-features-grid">
+                        <div class="sv-feature-card">
+                            <div class="sv-feature-icon-box"><i class="fa-solid fa-scissors"></i></div>
+                            <h3>Custom Time Trimming</h3>
+                            <p>Cut and download exact video or audio segments with millisecond precision.</p>
+                        </div>
+                        <div class="sv-feature-card">
+                            <div class="sv-feature-icon-box"><i class="fa-solid fa-bolt"></i></div>
+                            <h3>4K Ultra HD & 60fps</h3>
+                            <p>Extract videos in 4K (2160p), 2K (1440p), 1080p 60fps, or original source formats.</p>
+                        </div>
+                        <div class="sv-feature-card">
+                            <div class="sv-feature-icon-box"><i class="fa-solid fa-compact-disc"></i></div>
+                            <h3>320kbps MP3 Audio</h3>
+                            <p>Rip pristine audio tracks in crisp 320kbps MP3 or native untouched M4A formats.</p>
+                        </div>
+                    </div>
+                </main>
             </div>
         </div>
     </div>
