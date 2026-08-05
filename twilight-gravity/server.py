@@ -13,7 +13,7 @@ import yt_dlp
 import imageio_ffmpeg
 import uuid
 
-PORT = 5000
+PORT = int(os.environ.get('PORT', 5000))
 TOKEN_FILE = 'yt_tokens.json'
 active_downloads = {}
 
@@ -420,10 +420,16 @@ class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     allow_reuse_address = True
 
 if __name__ == '__main__':
+    import socket
+    try:
+        local_ip = socket.gethostbyname(socket.gethostname())
+    except Exception:
+        local_ip = '127.0.0.1'
     print("=" * 60)
     print("  Amit Kushwaha Website & StreamVault Multi-Threaded Server is running!")
-    print(f"  Localhost URL: http://127.0.0.1:{PORT}")
-    print(f"  YT Downloader URL: http://127.0.0.1:{PORT}/ytdownloader")
+    print(f"  Desktop URL:  http://127.0.0.1:{PORT}")
+    print(f"  Mobile URL:   http://{local_ip}:{PORT}  (same WiFi)")
+    print(f"  YT Downloader: http://{local_ip}:{PORT}/ytdownloader")
     print("=" * 60)
     httpd = ThreadedHTTPServer(("", PORT), SPAServer)
     httpd.serve_forever()

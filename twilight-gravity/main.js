@@ -2030,18 +2030,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-// Disable custom cursor on touch devices entirely
-const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-if (isTouchDevice) {
-    const cursor = document.getElementById('custom-cursor');
-    if (cursor) cursor.style.display = 'none';
-}
+// Disable custom cursor on touch devices — runs after DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isTouchDevice) {
+        const cursorEl = document.getElementById('custom-cursor');
+        if (cursorEl) cursorEl.style.display = 'none';
+    }
+});
 
-const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
-// Localhost: use full URL with port. Live deployed domain (mobile+desktop): use '' (relative same-origin URL)
-const API_BASE_URL = isLocalHost 
-  ? (window.location.port ? `${window.location.protocol}//${window.location.hostname}:${window.location.port}` : 'http://127.0.0.1:5000')
-  : '';
+// API_BASE_URL: auto-detects server origin for all scenarios:
+// Desktop localhost → http://127.0.0.1:5000
+// Mobile same WiFi → http://10.130.x.x:5000
+// Live deployed   → https://amitkushwaha.in
+const API_BASE_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5000' : window.location.origin;
 
 let currentVideoData = null;
 
@@ -2082,7 +2084,20 @@ async function processUrl() {
       body: JSON.stringify({ url })
     });
 
-    const data = await response.json();
+    // Safe JSON parsing — prevents "Unexpected end of JSON input" crash
+    const rawText = await response.text();
+    if (!rawText || rawText.trim() === '') {
+      showStatus('Server returned empty response. Please check server is running correctly.', 'error');
+      return;
+    }
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (parseErr) {
+      showStatus(`Server response error: Invalid JSON. Raw: ${rawText.substring(0, 120)}`, 'error');
+      return;
+    }
 
     if (!response.ok || data.error) {
       showStatus(data.error || 'Failed to fetch video details.', 'error');
@@ -2095,7 +2110,7 @@ async function processUrl() {
     hideStatus();
 
   } catch (err) {
-    showStatus(`Connection error: ${err.message}. Please verify the server is running.`, 'error');
+    showStatus(`Connection error: ${err.message}. Make sure the server is running and accessible.`, 'error');
   } finally {
     if (fetchBtn) {
       fetchBtn.disabled = false;
@@ -2284,7 +2299,7 @@ function renderVideoFormats(options) {
     `;
     const dlBtn = card.querySelector('button');
     dlBtn.addEventListener('click', () => {
-      startDownload(opt.format_id || 'best', 'video', qualityLabel);
+      startDownload(opt.format_id || 'best', 'video', qualityLabel, opt.url);
     });
     container.appendChild(card);
   });
@@ -2326,7 +2341,7 @@ function renderAudioFormats(options) {
     `;
     const dlBtn = card.querySelector('button');
     dlBtn.addEventListener('click', () => {
-      startDownload(opt.format_id || 'bestaudio/best', 'audio', qualityLabel);
+      startDownload(opt.format_id || 'bestaudio/best', 'audio', qualityLabel, opt.url);
     });
     container.appendChild(card);
   });
@@ -2351,7 +2366,7 @@ function switchTab(type) {
   }
 }
 
-async function startDownload(formatId, mediaType, quality) {
+async function startDownload(formatId, mediaType, quality, streamUrl = null) {
   if (!currentVideoData || !currentVideoData.original_url) {
     showStatus('Invalid download request context. Please re-paste URL.', 'error');
     return;
@@ -2395,7 +2410,9 @@ async function startDownload(formatId, mediaType, quality) {
   }
 
   const downloadId = 'dl_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
-  const downloadUrl = `${API_BASE_URL}/api/download?url=${encodeURIComponent(currentVideoData.original_url)}&format_id=${encodeURIComponent(formatId || 'best')}&type=${encodeURIComponent(mediaType)}&quality=${encodeURIComponent(quality)}&title=${encodeURIComponent(currentVideoData.title)}&download_id=${downloadId}${startParam}${endParam}`;
+  const downloadUrl = streamUrl 
+    ? `${API_BASE_URL}/api/download?stream_url=${encodeURIComponent(streamUrl)}&filename=${encodeURIComponent(currentVideoData.title + '.' + (mediaType === 'audio' ? 'mp3' : 'mp4'))}&type=${encodeURIComponent(mediaType)}`
+    : `${API_BASE_URL}/api/download?url=${encodeURIComponent(currentVideoData.original_url)}&format_id=${encodeURIComponent(formatId || 'best')}&type=${encodeURIComponent(mediaType)}&quality=${encodeURIComponent(quality)}&title=${encodeURIComponent(currentVideoData.title)}&download_id=${downloadId}${startParam}${endParam}`;
 
   let targetPct = 8;
   let isDone = false;
