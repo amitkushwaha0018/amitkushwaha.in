@@ -2039,11 +2039,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// API_BASE_URL: auto-detects server origin for all scenarios:
-// Desktop localhost → http://127.0.0.1:5000
-// Mobile same WiFi → http://10.130.x.x:5000
-// Live deployed   → https://amitkushwaha.in
-const API_BASE_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5000' : window.location.origin;
+const isLocalTesting = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('10.') || window.location.hostname.startsWith('192.168.') || window.location.protocol === 'file:';
+const API_BASE_URL = isLocalTesting ? (window.location.port === '5000' ? window.location.origin : 'http://127.0.0.1:5000') : window.location.origin;
 
 let currentVideoData = null;
 
