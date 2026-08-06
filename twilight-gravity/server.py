@@ -430,15 +430,11 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                         }
 
                 client_options = [
-                    ['android'],
-                    ['android_vr'],
-                    ['mweb'],
+                    ['android_vr', 'android'],
+                    ['ios', 'android'],
+                    ['mweb', 'android'],
                     ['web']
                 ]
-
-                clean_cookie_file = os.path.join(temp_dir, 'clean_cookies.txt')
-                with open(clean_cookie_file, 'w') as f_c:
-                    f_c.write('# Netscape HTTP Cookie File\n')
 
                 for client_list in client_options:
                     try:
@@ -448,7 +444,6 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             'no_warnings': True,
                             'nocheckcertificate': True,
                             'geo_bypass': True,
-                            'cookiefile': clean_cookie_file,
                             'socket_timeout': 30,
                             'retries': 5,
                             'fragment_retries': 5,
