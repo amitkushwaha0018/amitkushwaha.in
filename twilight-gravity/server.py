@@ -59,6 +59,20 @@ def format_duration(seconds):
     secs = seconds % 60
     return f"{hours:02d}:{minutes:02d}:{secs:02d}" if hours > 0 else f"{minutes:02d}:{secs:02d}"
 
+def get_real_youtube_metadata(video_id):
+    if not video_id: return 0
+    url = f"https://www.youtube.com/watch?v={video_id}"
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'})
+    try:
+        with urllib.request.urlopen(req, timeout=5) as r:
+            html = r.read().decode('utf-8', errors='ignore')
+            m = re.search(r'"viewCount":"(\d+)"', html)
+            if m:
+                return int(m.group(1))
+    except Exception:
+        pass
+    return 0
+
 def format_size(bytes_num):
     if not bytes_num: return "N/A"
     bytes_num = int(bytes_num)
@@ -169,6 +183,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     duration_sec = info.get('duration') or flat_info.get('duration', 0)
                     channel = info.get('uploader') or info.get('channel') or flat_info.get('uploader') or flat_info.get('channel', 'Unknown Channel')
                     view_count = info.get('view_count') or flat_info.get('view_count', 0)
+                    if not view_count or view_count == 0:
+                        view_count = get_real_youtube_metadata(video_id)
 
                     formats_raw = info.get('formats', [])
                     video_options = []
