@@ -513,8 +513,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             ydl.download([url])
 
-                        downloaded_files = os.listdir(temp_dir)
-                        if downloaded_files:
+                        media_files = [f for f in os.listdir(temp_dir) if not f.endswith('.txt') and not f.endswith('.part') and not f.endswith('.ytdl')]
+                        if media_files:
                             download_success = True
                             break
                     except Exception as e_dl:
@@ -522,13 +522,13 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                         continue
 
                 try:
-                    downloaded_files = os.listdir(temp_dir) if os.path.exists(temp_dir) else []
-                    if not download_success or not downloaded_files:
+                    media_files = [f for f in os.listdir(temp_dir) if not f.endswith('.txt') and not f.endswith('.part') and not f.endswith('.ytdl')] if os.path.exists(temp_dir) else []
+                    if not download_success or not media_files:
                         self._send_json({'error': f'Download failed: {str(last_dl_err or "No media downloaded")}'}, 500)
                         return
 
-                    target_file = os.path.join(temp_dir, downloaded_files[0])
-                    filename = downloaded_files[0]
+                    filename = media_files[0]
+                    target_file = os.path.join(temp_dir, filename)
                     ext_lower = filename.split('.')[-1].lower()
                     mimetype = {'mp4': 'video/mp4', 'webm': 'video/webm', 'mp3': 'audio/mpeg', 'm4a': 'audio/mp4'}.get(ext_lower, 'application/octet-stream')
 
