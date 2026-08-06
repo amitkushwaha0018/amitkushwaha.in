@@ -430,10 +430,9 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                         }
 
                 client_options = [
-                    ['ios', 'android'],
-                    ['android_vr', 'android'],
-                    ['mweb', 'android'],
-                    ['android_creator', 'android'],
+                    ['android'],
+                    ['android_vr'],
+                    ['mweb'],
                     ['web']
                 ]
 
