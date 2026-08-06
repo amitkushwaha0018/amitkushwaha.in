@@ -104,12 +104,9 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     pass
 
                 client_options = [
-                    ['tv_embedded'],
                     ['android', 'ios'],
                     ['mweb'],
-                    ['web_creator'],
-                    ['ios', 'mweb'],
-                    ['web']
+                    ['tv_embedded']
                 ]
                 
                 info = None
@@ -125,6 +122,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             'extract_flat': False,
                             'nocheckcertificate': True,
                             'geo_bypass': True,
+                            'socket_timeout': 5,
                             'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264', 'acodec:m4a', 'acodec:opus'],
                             'http_headers': {
                                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
