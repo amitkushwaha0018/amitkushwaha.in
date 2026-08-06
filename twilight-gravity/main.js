@@ -2040,7 +2040,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 const isLocalTesting = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('10.') || window.location.hostname.startsWith('192.168.') || window.location.protocol === 'file:';
-const API_BASE_URL = isLocalTesting ? (window.location.port === '5000' ? window.location.origin : 'http://127.0.0.1:5000') : window.location.origin;
+const API_BASE_URL = isLocalTesting ? 'http://127.0.0.1:5000' : 'https://amitkushwaha-streamvault.onrender.com';
 
 let currentVideoData = null;
 
