@@ -469,6 +469,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     from pytubefix import YouTube
                     yt_obj = YouTube(url, client='MWEB')
                     stream = None
+                    out_ext = 'mp3' if media_type == 'audio' else 'mp4'
                     if media_type == 'audio':
                         stream = yt_obj.streams.filter(only_audio=True).first() or yt_obj.streams.filter(progressive=True).first()
                     else:
@@ -479,11 +480,10 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                         if not stream:
                             stream = yt_obj.streams.get_highest_resolution() or yt_obj.streams.filter(progressive=True).first()
 
-                    if stream and stream.url:
-                        target_pytube = os.path.join(temp_dir, f"{safe_title}.mp4")
-                        req_p = urllib.request.Request(stream.url, headers={'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X)'})
-                        with urllib.request.urlopen(req_p, timeout=60) as resp_p, open(target_pytube, 'wb') as out_p:
-                            shutil.copyfileobj(resp_p, out_p)
+                    if stream:
+                        target_filename = f"{safe_title}.{out_ext}"
+                        stream.download(output_path=temp_dir, filename=target_filename)
+                        target_pytube = os.path.join(temp_dir, target_filename)
                         if os.path.exists(target_pytube) and os.path.getsize(target_pytube) > 0:
                             download_success = True
                             direct_stream_downloaded = True
@@ -492,74 +492,74 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
 
                 if not direct_stream_downloaded:
                     for client_list in client_options:
-                    try:
-                        ydl_opts_meta = {
-                            'quiet': True,
-                            'no_warnings': True,
-                            'extract_flat': False,
-                            'nocheckcertificate': True,
-                            'geo_bypass': True,
-                            'socket_timeout': 15,
-                            'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264', 'acodec:m4a', 'acodec:opus'],
-                            'extractor_args': {
-                                'youtube': {
-                                    'player_client': client_list,
-                                    'player_skip': ['configs', 'webpage'],
-                                }
-                            },
-                        }
-                        if DENO_EXE_PATH:
-                            ydl_opts_meta['js_runtimes'] = {'deno': {'path': DENO_EXE_PATH}}
-                        with yt_dlp.YoutubeDL(ydl_opts_meta) as ydl_m:
-                            info_m = ydl_m.extract_info(url, download=False)
-                            if info_m:
-                                formats_m = info_m.get('formats', [])
-                                stream_url = None
-                                stream_hdrs = {'User-Agent': 'Mozilla/5.0'}
+                        try:
+                            ydl_opts_meta = {
+                                'quiet': True,
+                                'no_warnings': True,
+                                'extract_flat': False,
+                                'nocheckcertificate': True,
+                                'geo_bypass': True,
+                                'socket_timeout': 15,
+                                'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264', 'acodec:m4a', 'acodec:opus'],
+                                'extractor_args': {
+                                    'youtube': {
+                                        'player_client': client_list,
+                                        'player_skip': ['configs', 'webpage'],
+                                    }
+                                },
+                            }
+                            if DENO_EXE_PATH:
+                                ydl_opts_meta['js_runtimes'] = {'deno': {'path': DENO_EXE_PATH}}
+                            with yt_dlp.YoutubeDL(ydl_opts_meta) as ydl_m:
+                                info_m = ydl_m.extract_info(url, download=False)
+                                if info_m:
+                                    formats_m = info_m.get('formats', [])
+                                    stream_url = None
+                                    stream_hdrs = {'User-Agent': 'Mozilla/5.0'}
 
-                                if media_type == 'audio':
-                                    for f in formats_m:
-                                        if f.get('acodec') != 'none' and f.get('vcodec') == 'none' and f.get('url'):
-                                            stream_url = f.get('url')
-                                            stream_hdrs = f.get('http_headers', stream_hdrs)
-                                            break
-                                    if not stream_url and formats_m:
+                                    if media_type == 'audio':
                                         for f in formats_m:
-                                            if f.get('url'):
+                                            if f.get('acodec') != 'none' and f.get('vcodec') == 'none' and f.get('url'):
                                                 stream_url = f.get('url')
                                                 stream_hdrs = f.get('http_headers', stream_hdrs)
                                                 break
-                                else:
-                                    height_match = re.search(r'(\d+)p', quality_param)
-                                    target_h = int(height_match.group(1)) if height_match else 0
-                                    
-                                    best_fmt = None
-                                    for f in formats_m:
-                                        if f.get('url') and f.get('vcodec') != 'none':
-                                            h = f.get('height') or 0
-                                            if target_h and h == target_h and f.get('acodec') != 'none':
-                                                best_fmt = f
-                                                break
-                                            elif target_h and h == target_h:
-                                                best_fmt = f
-                                            elif not best_fmt or (h <= (target_h or 720) and h > 0):
-                                                best_fmt = f
-                                    
-                                    if best_fmt:
-                                        stream_url = best_fmt.get('url')
-                                        stream_hdrs = best_fmt.get('http_headers', stream_hdrs)
+                                        if not stream_url and formats_m:
+                                            for f in formats_m:
+                                                if f.get('url'):
+                                                    stream_url = f.get('url')
+                                                    stream_hdrs = f.get('http_headers', stream_hdrs)
+                                                    break
+                                    else:
+                                        height_match = re.search(r'(\d+)p', quality_param)
+                                        target_h = int(height_match.group(1)) if height_match else 0
+                                        
+                                        best_fmt = None
+                                        for f in formats_m:
+                                            if f.get('url') and f.get('vcodec') != 'none':
+                                                h = f.get('height') or 0
+                                                if target_h and h == target_h and f.get('acodec') != 'none':
+                                                    best_fmt = f
+                                                    break
+                                                elif target_h and h == target_h:
+                                                    best_fmt = f
+                                                elif not best_fmt or (h <= (target_h or 720) and h > 0):
+                                                    best_fmt = f
+                                        
+                                        if best_fmt:
+                                            stream_url = best_fmt.get('url')
+                                            stream_hdrs = best_fmt.get('http_headers', stream_hdrs)
 
-                                if stream_url:
-                                    req_s = urllib.request.Request(stream_url, headers=stream_hdrs)
-                                    with urllib.request.urlopen(req_s, timeout=60) as resp_s, open(target_out, 'wb') as out_f:
-                                        shutil.copyfileobj(resp_s, out_f)
-                                    if os.path.exists(target_out) and os.path.getsize(target_out) > 0:
-                                        download_success = True
-                                        direct_stream_downloaded = True
-                                        break
-                    except Exception as e_stream:
-                        print(f"Direct stream extraction error with {client_list}: {e_stream}")
-                        continue
+                                    if stream_url:
+                                        req_s = urllib.request.Request(stream_url, headers=stream_hdrs)
+                                        with urllib.request.urlopen(req_s, timeout=60) as resp_s, open(target_out, 'wb') as out_f:
+                                            shutil.copyfileobj(resp_s, out_f)
+                                        if os.path.exists(target_out) and os.path.getsize(target_out) > 0:
+                                            download_success = True
+                                            direct_stream_downloaded = True
+                                            break
+                        except Exception as e_stream:
+                            print(f"Direct stream extraction error with {client_list}: {e_stream}")
+                            continue
 
                 if not direct_stream_downloaded:
                     for client_list in client_options:
