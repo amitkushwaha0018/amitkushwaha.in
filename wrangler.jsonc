@@ -1,12 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "amitkushwaha-website",
+  "main": "worker.js",
   "compatibility_date": "2025-09-27",
   "observability": {
     "enabled": true
   },
   "assets": {
-    "directory": "twilight-gravity"
+    "directory": "twilight-gravity",
+    "binding": "ASSETS"
   },
   "compatibility_flags": [
     "nodejs_compat"
