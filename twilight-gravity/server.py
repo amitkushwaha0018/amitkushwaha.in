@@ -351,6 +351,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                 'no_warnings': True,
                 'nocheckcertificate': True,
                 'geo_bypass': True,
+                'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
                 'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264'],
                 'concurrent_fragment_downloads': 8,
                 'buffersize': 1024 * 1024,
