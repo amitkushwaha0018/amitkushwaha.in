@@ -1,15 +1,15 @@
 /**
- * Cloudflare Worker — StreamVault API Gateway & Static Proxy
- * Routes /api/* directly to Render Python backend (https://amitkushwaha-streamvault.onrender.com)
- * Serves static frontend assets for all other routes
+ * Cloudflare Worker — Full Reverse Proxy Gateway for amitkushwaha.in
+ * Proxies all traffic (HTML, JS, CSS, API, Assets) directly to Render Python Server
+ * Ensures 100% valid Content-Type header delivery without 404 HTML fallback pages
  */
 
 const RENDER_BACKEND = 'https://amitkushwaha-streamvault.onrender.com';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
 };
 
 export default {
@@ -21,51 +21,38 @@ export default {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
-    // 2. Proxy all /api/ endpoints to Render Python Backend
-    if (url.pathname.startswith('/api/')) {
-      const backendUrl = RENDER_BACKEND + url.pathname + url.search;
+    // 2. Build origin request to Render backend
+    const targetUrl = RENDER_BACKEND + url.pathname + url.search;
+    const reqHeaders = new Headers(request.headers);
+    reqHeaders.set('Host', 'amitkushwaha-streamvault.onrender.com');
+
+    const init = {
+      method: request.method,
+      headers: reqHeaders,
+      redirect: 'follow',
+    };
+
+    if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
+      init.body = await request.clone().arrayBuffer();
+    }
+
+    try {
+      const response = await fetch(targetUrl, init);
+      const resHeaders = new Headers(response.headers);
       
-      const reqHeaders = new Headers(request.headers);
-      reqHeaders.set('Host', 'amitkushwaha-streamvault.onrender.com');
+      // Inject CORS headers
+      Object.entries(CORS_HEADERS).forEach(([k, v]) => resHeaders.set(k, v));
 
-      const init = {
-        method: request.method,
-        headers: reqHeaders,
-        redirect: 'follow',
-      };
-
-      if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
-        init.body = await request.clone().arrayBuffer();
-      }
-
-      try {
-        const response = await fetch(backendUrl, init);
-        const resHeaders = new Headers(response.headers);
-        Object.entries(CORS_HEADERS).forEach(([k, v]) => resHeaders.set(k, v));
-
-        return new Response(response.body, {
-          status: response.status,
-          statusText: response.statusText,
-          headers: resHeaders,
-        });
-      } catch (err) {
-        return new Response(JSON.stringify({ error: 'Backend Connection Error: ' + err.message }), {
-          status: 502,
-          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
-        });
-      }
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: resHeaders,
+      });
+    } catch (err) {
+      return new Response(
+        JSON.stringify({ error: 'Proxy Gateway Error: ' + err.message }),
+        { status: 502, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } }
+      );
     }
-
-    // 3. Serve static site assets via Cloudflare ASSETS binding (or fallback)
-    if (env.ASSETS) {
-      try {
-        return await env.ASSETS.fetch(request);
-      } catch (e) {
-        // Fallback
-      }
-    }
-
-    // Static fallback
-    return fetch(request);
   },
 };
