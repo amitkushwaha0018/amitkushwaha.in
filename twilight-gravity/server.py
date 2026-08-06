@@ -238,12 +238,18 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     try:
                         watch_url = f'https://www.youtube.com/watch?v={video_id}'
                         w_req = urllib.request.Request(watch_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
-                        with urllib.request.urlopen(w_req, timeout=5) as wr:
+                        with urllib.request.urlopen(w_req, timeout=6) as wr:
                             w_html = wr.read().decode('utf-8', errors='ignore')
-                            dm = re.search(r'"approxDurationMs":"(\d+)"', w_html)
-                            if dm: dur_sec = int(dm.group(1)) // 1000
+                            dm = re.search(r'"lengthSeconds":"(\d+)"', w_html) or re.search(r'"approxDurationMs":"(\d+)"', w_html)
+                            if dm:
+                                val = int(dm.group(1))
+                                dur_sec = val // 1000 if val > 100000 else val
                             vm = re.search(r'"viewCount":"(\d+)"', w_html)
-                            if vm: view_cnt = int(vm.group(1))
+                            if vm and vm.group(1).isdigit():
+                                view_cnt = int(vm.group(1))
+                            am = re.search(r'"author":"(.*?)"', w_html) or re.search(r'"ownerChannelName":"(.*?)"', w_html)
+                            if am and am.group(1):
+                                author = am.group(1)
                     except Exception:
                         pass
                         
