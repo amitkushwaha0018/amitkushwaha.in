@@ -145,16 +145,12 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             'geo_bypass': True,
                             'socket_timeout': 5,
                             'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264', 'acodec:m4a', 'acodec:opus'],
-                            'http_headers': {
-                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-                                'Accept-Language': 'en-US,en;q=0.9',
-                            },
                             'extractor_args': {
                                 'youtube': {
                                     'player_client': client_list,
                                 }
                             },
-                        # Do not pass invalid cookiefile - clean requests bypass bot checks on cloud IPs
+                        }# Do not pass invalid cookiefile - clean requests bypass bot checks on cloud IPs
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             info = ydl.extract_info(url, download=False)
                             if info:
@@ -447,10 +443,6 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             'geo_bypass': True,
                             'socket_timeout': 15,
                             'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264', 'acodec:m4a', 'acodec:opus'],
-                            'http_headers': {
-                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-                                'Accept-Language': 'en-US,en;q=0.9',
-                            },
                             'extractor_args': {'youtube': {'player_client': client_list}},
                         }
                         with yt_dlp.YoutubeDL(ydl_opts_meta) as ydl_m:
