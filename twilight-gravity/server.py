@@ -24,20 +24,8 @@ TOKEN_FILE = 'yt_tokens.json'
 active_downloads = {}
 
 def ensure_youtube_cookies(cookies_file):
-    try:
-        if os.path.exists(cookies_file) and (time.time() - os.path.getmtime(cookies_file)) < 21600:
-            return
-        cj = http.cookiejar.MozillaCookieJar(cookies_file)
-        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
-        req = urllib.request.Request('https://www.youtube.com', headers={
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-            'Accept-Language': 'en-US,en;q=0.9',
-        })
-        with opener.open(req, timeout=10) as r:
-            pass
-        cj.save(ignore_discard=True, ignore_expires=True)
-    except Exception as e:
-        print(f"Cookie generation warning: {e}")
+    # Disabled - clean requests without cookies bypass YouTube bot verification on cloud IPs
+    pass
 
 # Ensure FFmpeg is available on PATH for StreamVault engine
 try:
