@@ -224,6 +224,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             'nocheckcertificate': True,
                             'geo_bypass': True,
                             'socket_timeout': 5,
+                            'remote_components': ['ejs:github'],
                             'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264', 'acodec:m4a', 'acodec:opus'],
                             'extractor_args': {
                                 'youtube': {
@@ -561,6 +562,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                 'nocheckcertificate': True,
                                 'geo_bypass': True,
                                 'socket_timeout': 15,
+                                'remote_components': ['ejs:github'],
                                 'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264', 'acodec:m4a', 'acodec:opus'],
                                 'extractor_args': {
                                     'youtube': {
@@ -635,6 +637,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                 'socket_timeout': 30,
                                 'retries': 5,
                                 'fragment_retries': 5,
+                                'remote_components': ['ejs:github'],
                                 'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
                                 'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264'],
                                 'concurrent_fragment_downloads': 4,
