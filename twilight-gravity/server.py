@@ -170,8 +170,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     if 'entries' in info: info = info['entries'][0]
                     video_id = info.get('id', '') or flat_info.get('id', '')
                     title = info.get('title') or flat_info.get('title', 'Unknown Title')
-                    # Always use YouTube CDN thumbnail - never rely on signed/expiring URLs from yt-dlp
-                    thumbnail = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg" if video_id else (info.get('thumbnail') or f"https://img.youtube.com/vi//maxresdefault.jpg")
+                    thumbnail = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg" if video_id else "https://img.youtube.com/vi/U0EI7XFkkV4/hqdefault.jpg"
                     duration_sec = info.get('duration') or flat_info.get('duration', 0)
                     channel = info.get('uploader') or info.get('channel') or flat_info.get('uploader') or flat_info.get('channel', 'Unknown Channel')
                     view_count = info.get('view_count') or flat_info.get('view_count', 0)
