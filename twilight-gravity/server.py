@@ -484,15 +484,10 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             height_match = re.search(r'(\d+)p', quality_param)
                             target_h = height_match.group(1) if height_match else ''
 
-                            if format_id:
-                                if '+' in format_id or '[' in format_id or '/' in format_id:
-                                    ydl_opts['format'] = format_id
-                                elif target_h:
-                                    ydl_opts['format'] = f"bestvideo[height<={target_h}]+bestaudio/bestvideo[format_id={format_id}]+bestaudio/{format_id}/bestvideo+bestaudio/best"
-                                else:
-                                    ydl_opts['format'] = f"{format_id}+bestaudio/bestvideo+bestaudio/best"
+                            if target_h:
+                                ydl_opts['format'] = f"best[height<={target_h}]/bestvideo[height<={target_h}]+bestaudio/best[height<={target_h}]/bestvideo+bestaudio/best"
                             else:
-                                ydl_opts['format'] = 'bestvideo+bestaudio/best'
+                                ydl_opts['format'] = "best[height<=720]/bestvideo+bestaudio/best"
 
                             if not is_trimmed:
                                 ydl_opts['postprocessor_args'] = {
