@@ -17,9 +17,17 @@ import yt_dlp
 import imageio_ffmpeg
 import uuid
 
-import http.cookiejar
-import zipfile
-import io
+import sys
+VENDOR_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'vendor')
+if os.path.exists(VENDOR_DIR) and VENDOR_DIR not in sys.path:
+    sys.path.insert(0, VENDOR_DIR)
+
+try:
+    from pytubefix import YouTube
+    print("PyTubeFix vendor loaded successfully!")
+except Exception as e:
+    print(f"PyTubeFix vendor load warning: {e}")
+    YouTube = None
 
 PORT = int(os.environ.get('PORT', 7777))
 TOKEN_FILE = 'yt_tokens.json'
@@ -51,6 +59,25 @@ def ensure_deno_installed():
 
 # Ensure Deno JS Engine is ready on server start
 DENO_EXE_PATH = ensure_deno_installed()
+
+def find_js_runtime():
+    try:
+        import nodejs_wheel
+        node_dir = os.path.dirname(nodejs_wheel.__file__)
+        node_bin = os.path.join(node_dir, 'node.exe' if os.name == 'nt' else 'node')
+        if os.path.exists(node_bin):
+            return {'node': {'path': node_bin}}
+    except ImportError:
+        pass
+
+    node_sys = shutil.which('node') or shutil.which('node.exe')
+    if node_sys:
+        return {'node': {'path': node_sys}}
+
+    if DENO_EXE_PATH and os.path.exists(DENO_EXE_PATH):
+        return {'deno': {'path': DENO_EXE_PATH}}
+
+    return None
 
 YouTube = None
 
@@ -205,8 +232,9 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                 }
                             },
                         }
-                        if DENO_EXE_PATH:
-                            ydl_opts['js_runtimes'] = {'deno': {'path': DENO_EXE_PATH}}# Do not pass invalid cookiefile - clean requests bypass bot checks on cloud IPs
+                        js_rt = find_js_runtime()
+                        if js_rt:
+                            ydl_opts['js_runtimes'] = js_rt
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             info = ydl.extract_info(url, download=False)
                             if info:
@@ -541,8 +569,9 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                     }
                                 },
                             }
-                            if DENO_EXE_PATH:
-                                ydl_opts_meta['js_runtimes'] = {'deno': {'path': DENO_EXE_PATH}}
+                            js_rt = find_js_runtime()
+                            if js_rt:
+                                ydl_opts_meta['js_runtimes'] = js_rt
                             with yt_dlp.YoutubeDL(ydl_opts_meta) as ydl_m:
                                 info_m = ydl_m.extract_info(url, download=False)
                                 if info_m:
@@ -619,8 +648,9 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                     }
                                 },
                             }
-                            if DENO_EXE_PATH:
-                                ydl_opts['js_runtimes'] = {'deno': {'path': DENO_EXE_PATH}}
+                            js_rt = find_js_runtime()
+                            if js_rt:
+                                ydl_opts['js_runtimes'] = js_rt
 
                             if is_trimmed:
                                 ydl_opts['download_ranges'] = yt_dlp.utils.download_range_func(None, [(start_sec or 0, end_sec or float('inf'))])
