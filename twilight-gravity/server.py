@@ -430,10 +430,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                         }
 
                 client_options = [
-                    ['android_vr', 'android'],
-                    ['ios', 'android'],
-                    ['mweb', 'android'],
-                    ['web']
+                    ['android'],
+                    ['android_vr']
                 ]
 
                 direct_stream_downloaded = False
