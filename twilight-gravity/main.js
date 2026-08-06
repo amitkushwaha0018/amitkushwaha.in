@@ -2512,7 +2512,20 @@ async function startDownload(formatId, mediaType, quality, streamUrl = null) {
   }, 250);
 
   try {
-    const res = await fetch(downloadUrl);
+    const controller = new AbortController();
+    // 8-minute timeout for large video downloads (Render free tier can be slow)
+    const timeoutId = setTimeout(() => controller.abort(), 8 * 60 * 1000);
+    let res;
+    try {
+      res = await fetch(downloadUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
+    } catch (fetchErr) {
+      clearTimeout(timeoutId);
+      if (fetchErr.name === 'AbortError') {
+        throw new Error('Download timed out. Server may be busy — please try again in a moment.');
+      }
+      throw fetchErr;
+    }
     if (!res.ok) {
       let errMsg = `Server error (Status ${res.status})`;
       try {
