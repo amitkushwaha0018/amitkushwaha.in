@@ -50,7 +50,7 @@ def ensure_deno_installed():
         return None
 
 # Ensure Deno JS Engine is ready on server start
-ensure_deno_installed()
+DENO_EXE_PATH = ensure_deno_installed()
 
 def ensure_youtube_cookies(cookies_file):
     try:
@@ -180,7 +180,9 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                     'player_skip': ['configs', 'webpage'],
                                 }
                             },
-                        }# Do not pass invalid cookiefile - clean requests bypass bot checks on cloud IPs
+                        }
+                        if DENO_EXE_PATH:
+                            ydl_opts['js_runtimes'] = {'deno': {'path': DENO_EXE_PATH}}# Do not pass invalid cookiefile - clean requests bypass bot checks on cloud IPs
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             info = ydl.extract_info(url, download=False)
                             if info:
@@ -480,6 +482,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                 }
                             },
                         }
+                        if DENO_EXE_PATH:
+                            ydl_opts_meta['js_runtimes'] = {'deno': {'path': DENO_EXE_PATH}}
                         with yt_dlp.YoutubeDL(ydl_opts_meta) as ydl_m:
                             info_m = ydl_m.extract_info(url, download=False)
                             if info_m:
@@ -556,6 +560,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                     }
                                 },
                             }
+                            if DENO_EXE_PATH:
+                                ydl_opts['js_runtimes'] = {'deno': {'path': DENO_EXE_PATH}}
 
                             if is_trimmed:
                                 ydl_opts['download_ranges'] = yt_dlp.utils.download_range_func(None, [(start_sec or 0, end_sec or float('inf'))])
