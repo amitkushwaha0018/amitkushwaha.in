@@ -2418,10 +2418,20 @@ async function startDownload(formatId, mediaType, quality, streamUrl = null) {
 
   function updateUI(pct, statusMsg) {
     const rounded = Math.min(Math.max(Math.round(pct), 5), 100);
-    if (fillBar) fillBar.style.width = `${rounded}%`;
+    if (fillBar) {
+      fillBar.style.width = `${rounded}%`;
+      fillBar.style.background = 'linear-gradient(90deg, #ff3366, #ff0055, #7000ff)';
+    }
     if (percentText) percentText.textContent = `${rounded}%`;
-    if (floatingBadge) floatingBadge.style.left = `${rounded}%`;
-    if (statusText && statusMsg) statusText.textContent = statusMsg;
+    if (floatingBadge) {
+      floatingBadge.style.left = `${rounded}%`;
+      floatingBadge.style.background = 'linear-gradient(135deg, #ff0055 0%, #7000ff 100%)';
+      floatingBadge.textContent = `${rounded}%`;
+    }
+    if (statusText && statusMsg) {
+      statusText.style.color = 'var(--text-secondary)';
+      statusText.textContent = statusMsg;
+    }
   }
 
   updateUI(currentPct, `⚡ Connecting & Extracting 100% Original ${mediaName} (${quality})...`);
@@ -2522,10 +2532,21 @@ async function startDownload(formatId, mediaType, quality, streamUrl = null) {
   } catch (err) {
     isDone = true;
     clearInterval(pollInterval);
-    if (fillBar) fillBar.style.width = '0%';
+    if (fillBar) {
+      fillBar.style.width = '100%';
+      fillBar.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+    }
     if (percentText) percentText.textContent = 'Failed';
-    if (statusText) statusText.textContent = `❌ Download Failed: ${err.message}`;
-    showStatus(`Download Error: ${err.message}`, 'error');
+    if (floatingBadge) {
+      floatingBadge.style.left = '100%';
+      floatingBadge.style.background = '#ef4444';
+      floatingBadge.textContent = '❌ Failed';
+    }
+    if (statusText) {
+      statusText.style.color = '#f87171';
+      statusText.innerHTML = `❌ <b>Download Failed:</b> ${err.message || 'Server error'}. Please click Download again to retry.`;
+    }
+    hideStatus();
   }
 }
 
