@@ -244,9 +244,11 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             if dm:
                                 val = int(dm.group(1))
                                 dur_sec = val // 1000 if val > 100000 else val
-                            vm = re.search(r'"viewCount":"(\d+)"', w_html)
-                            if vm and vm.group(1).isdigit():
-                                view_cnt = int(vm.group(1))
+                            vm = re.search(r'"viewCount":"(\d+)"', w_html) or re.search(r'"simpleText":"([\d,]+)\s+views"', w_html)
+                            if vm:
+                                raw_v = vm.group(1).replace(',', '')
+                                if raw_v.isdigit():
+                                    view_cnt = int(raw_v)
                             am = re.search(r'"author":"(.*?)"', w_html) or re.search(r'"ownerChannelName":"(.*?)"', w_html)
                             if am and am.group(1):
                                 author = am.group(1)
