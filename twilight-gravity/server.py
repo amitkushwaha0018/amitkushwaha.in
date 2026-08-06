@@ -436,85 +436,146 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     ['web']
                 ]
 
+                direct_stream_downloaded = False
+                target_out = os.path.join(temp_dir, f"media.{'mp3' if media_type == 'audio' else 'mp4'}")
+
                 for client_list in client_options:
                     try:
-                        ydl_opts = {
-                            'outtmpl': out_template,
+                        ydl_opts_meta = {
                             'quiet': True,
                             'no_warnings': True,
                             'nocheckcertificate': True,
                             'geo_bypass': True,
-                            'socket_timeout': 30,
-                            'retries': 5,
-                            'fragment_retries': 5,
-                            'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
-                            'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264'],
-                            'concurrent_fragment_downloads': 4,
-                            'buffersize': 1024 * 1024,
-                            'merge_output_format': 'mp4',
-                            'progress_hooks': [yt_progress_hook],
-                            'http_headers': {
-                                'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36',
-                                'Accept-Language': 'en-US,en;q=0.9',
-                            },
-                            'extractor_args': {
-                                'youtube': {
-                                    'player_client': client_list,
-                                }
-                            },
+                            'socket_timeout': 15,
+                            'extractor_args': {'youtube': {'player_client': client_list}},
                         }
+                        with yt_dlp.YoutubeDL(ydl_opts_meta) as ydl_m:
+                            info_m = ydl_m.extract_info(url, download=False)
+                            if info_m:
+                                formats_m = info_m.get('formats', [])
+                                stream_url = None
 
-                        if is_trimmed:
-                            ydl_opts['download_ranges'] = yt_dlp.utils.download_range_func(None, [(start_sec or 0, end_sec or float('inf'))])
-                            ydl_opts['force_keyframes_at_cuts'] = True
+                                if media_type == 'audio':
+                                    for f in formats_m:
+                                        if f.get('acodec') != 'none' and f.get('vcodec') == 'none' and f.get('url'):
+                                            stream_url = f.get('url')
+                                            break
+                                    if not stream_url and formats_m:
+                                        for f in formats_m:
+                                            if f.get('url'):
+                                                stream_url = f.get('url')
+                                                break
+                                else:
+                                    height_match = re.search(r'(\d+)p', quality_param)
+                                    target_h = int(height_match.group(1)) if height_match else 0
+                                    
+                                    best_match = None
+                                    for f in formats_m:
+                                        if f.get('url') and f.get('vcodec') != 'none':
+                                            h = f.get('height') or 0
+                                            if target_h and h == target_h and f.get('acodec') != 'none':
+                                                best_match = f.get('url')
+                                                break
+                                            elif target_h and h == target_h:
+                                                best_match = f.get('url')
+                                            elif not best_match or (h <= (target_h or 720) and h > 0):
+                                                best_match = f.get('url')
+                                    stream_url = best_match
 
-                        if media_type == 'audio':
-                            ydl_opts['format'] = 'bestaudio/best'
-                            if query_params.get('raw', ['false'])[0] != 'true':
-                                ydl_opts['postprocessors'] = [{
-                                    'key': 'FFmpegExtractAudio',
-                                    'preferredcodec': 'mp3',
-                                    'preferredquality': '320'
-                                }]
-                        else:
-                            height_match = re.search(r'(\d+)p', quality_param)
-                            target_h = height_match.group(1) if height_match else ''
-                            if target_h:
-                                ydl_opts['format'] = f"18/22/b/best[height<={target_h}]/best"
-                            else:
-                                ydl_opts['format'] = "18/22/b/best"
-
-                            if not is_trimmed:
-                                ydl_opts['postprocessor_args'] = {
-                                    'ffmpeg': [
-                                        '-c:v', 'copy',
-                                        '-c:a', 'aac',
-                                        '-b:a', '320k'
-                                    ]
-                                }
-                            else:
-                                ydl_opts['postprocessor_args'] = {
-                                    'ffmpeg': [
-                                        '-avoid_negative_ts', 'make_zero',
-                                        '-c:v', 'libx264',
-                                        '-preset', 'medium',
-                                        '-crf', '14',
-                                        '-c:a', 'aac',
-                                        '-b:a', '320k',
-                                        '-async', '1'
-                                    ]
-                                }
-
-                        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                            ydl.download([url])
-
-                        media_files = [f for f in os.listdir(temp_dir) if not f.endswith('.txt') and not f.endswith('.part') and not f.endswith('.ytdl')]
-                        if media_files:
-                            download_success = True
-                            break
-                    except Exception as e_dl:
-                        last_dl_err = e_dl
+                                if stream_url:
+                                    req_s = urllib.request.Request(stream_url, headers={
+                                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                                    })
+                                    with urllib.request.urlopen(req_s, timeout=60) as resp_s, open(target_out, 'wb') as out_f:
+                                        shutil.copyfileobj(resp_s, out_f)
+                                    if os.path.exists(target_out) and os.path.getsize(target_out) > 0:
+                                        download_success = True
+                                        direct_stream_downloaded = True
+                                        break
+                    except Exception as e_stream:
+                        print(f"Direct stream extraction error with {client_list}: {e_stream}")
                         continue
+
+                if not direct_stream_downloaded:
+                    for client_list in client_options:
+                        try:
+                            ydl_opts = {
+                                'outtmpl': out_template,
+                                'quiet': True,
+                                'no_warnings': True,
+                                'nocheckcertificate': True,
+                                'geo_bypass': True,
+                                'socket_timeout': 30,
+                                'retries': 5,
+                                'fragment_retries': 5,
+                                'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
+                                'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264'],
+                                'concurrent_fragment_downloads': 4,
+                                'buffersize': 1024 * 1024,
+                                'merge_output_format': 'mp4',
+                                'progress_hooks': [yt_progress_hook],
+                                'http_headers': {
+                                    'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36',
+                                    'Accept-Language': 'en-US,en;q=0.9',
+                                },
+                                'extractor_args': {
+                                    'youtube': {
+                                        'player_client': client_list,
+                                    }
+                                },
+                            }
+
+                            if is_trimmed:
+                                ydl_opts['download_ranges'] = yt_dlp.utils.download_range_func(None, [(start_sec or 0, end_sec or float('inf'))])
+                                ydl_opts['force_keyframes_at_cuts'] = True
+
+                            if media_type == 'audio':
+                                ydl_opts['format'] = 'bestaudio/best'
+                                if query_params.get('raw', ['false'])[0] != 'true':
+                                    ydl_opts['postprocessors'] = [{
+                                        'key': 'FFmpegExtractAudio',
+                                        'preferredcodec': 'mp3',
+                                        'preferredquality': '320'
+                                    }]
+                            else:
+                                height_match = re.search(r'(\d+)p', quality_param)
+                                target_h = height_match.group(1) if height_match else ''
+                                if target_h:
+                                    ydl_opts['format'] = f"18/22/b/best[height<={target_h}]/best"
+                                else:
+                                    ydl_opts['format'] = "18/22/b/best"
+
+                                if not is_trimmed:
+                                    ydl_opts['postprocessor_args'] = {
+                                        'ffmpeg': [
+                                            '-c:v', 'copy',
+                                            '-c:a', 'aac',
+                                            '-b:a', '320k'
+                                        ]
+                                    }
+                                else:
+                                    ydl_opts['postprocessor_args'] = {
+                                        'ffmpeg': [
+                                            '-avoid_negative_ts', 'make_zero',
+                                            '-c:v', 'libx264',
+                                            '-preset', 'medium',
+                                            '-crf', '14',
+                                            '-c:a', 'aac',
+                                            '-b:a', '320k',
+                                            '-async', '1'
+                                        ]
+                                    }
+
+                            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                                ydl.download([url])
+
+                            media_files = [f for f in os.listdir(temp_dir) if not f.endswith('.txt') and not f.endswith('.part') and not f.endswith('.ytdl')]
+                            if media_files:
+                                download_success = True
+                                break
+                        except Exception as e_dl:
+                            last_dl_err = e_dl
+                            continue
 
                 try:
                     media_files = [f for f in os.listdir(temp_dir) if not f.endswith('.txt') and not f.endswith('.part') and not f.endswith('.ytdl')] if os.path.exists(temp_dir) else []
