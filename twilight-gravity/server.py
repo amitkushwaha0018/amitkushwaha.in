@@ -64,11 +64,13 @@ def get_real_youtube_metadata(video_id):
     url = f"https://www.youtube.com/watch?v={video_id}"
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'})
     try:
-        with urllib.request.urlopen(req, timeout=5) as r:
+        with urllib.request.urlopen(req, timeout=6) as r:
             html = r.read().decode('utf-8', errors='ignore')
-            m = re.search(r'"viewCount":"(\d+)"', html)
-            if m:
-                return int(m.group(1))
+            view_m = re.search(r'"viewCount":"(\d+)"', html) or re.search(r'"viewCount":\s*"(\d+)"', html) or re.search(r'(\d[\d,]+)\s+views', html)
+            if view_m:
+                val = view_m.group(1).replace(',', '')
+                if val.isdigit():
+                    return int(val)
     except Exception:
         pass
     return 0
