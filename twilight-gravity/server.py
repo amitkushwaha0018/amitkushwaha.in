@@ -476,7 +476,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             ydl_opts['force_keyframes_at_cuts'] = True
 
                         if media_type == 'audio':
-                            ydl_opts['format'] = f"{format_id}/bestaudio/best" if format_id else 'bestaudio/best'
+                            ydl_opts['format'] = 'bestaudio/best'
                             if query_params.get('raw', ['false'])[0] != 'true':
                                 ydl_opts['postprocessors'] = [{
                                     'key': 'FFmpegExtractAudio',
@@ -486,11 +486,10 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                         else:
                             height_match = re.search(r'(\d+)p', quality_param)
                             target_h = height_match.group(1) if height_match else ''
-
                             if target_h:
-                                ydl_opts['format'] = f"best[height<={target_h}]/bestvideo[height<={target_h}]+bestaudio/best[height<={target_h}]/bestvideo+bestaudio/best"
+                                ydl_opts['format'] = f"best[height<={target_h}]/best"
                             else:
-                                ydl_opts['format'] = "best[height<=720]/bestvideo+bestaudio/best"
+                                ydl_opts['format'] = "best[height<=720]/best"
 
                             if not is_trimmed:
                                 ydl_opts['postprocessor_args'] = {
