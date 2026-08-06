@@ -69,26 +69,47 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     self._send_json({'error': 'Please provide a valid YouTube URL'}, 400)
                     return
 
-                ydl_opts = {
-                    'quiet': True,
-                    'no_warnings': True,
-                    'extract_flat': False,
-                    'nocheckcertificate': True,
-                    'geo_bypass': True,
-                    'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264', 'acodec:m4a', 'acodec:opus'],
-                    'http_headers': {
-                        'User-Agent': 'Mozilla/5.0 (ChromeCast; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 CrKey/1.54.250320',
-                        'Accept-Language': 'en-US,en;q=0.9',
-                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    },
-                    'extractor_args': {
-                        'youtube': {
-                            'player_client': ['android', 'ios', 'mweb'],
+                client_options = [
+                    ['tv_embedded'],
+                    ['android', 'ios'],
+                    ['mweb'],
+                    ['web_creator'],
+                    ['ios', 'mweb'],
+                    ['web']
+                ]
+                
+                info = None
+                last_err = None
+
+                for client_list in client_options:
+                    try:
+                        ydl_opts = {
+                            'quiet': True,
+                            'no_warnings': True,
+                            'extract_flat': False,
+                            'nocheckcertificate': True,
+                            'geo_bypass': True,
+                            'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264', 'acodec:m4a', 'acodec:opus'],
+                            'http_headers': {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                                'Accept-Language': 'en-US,en;q=0.9',
+                            },
+                            'extractor_args': {
+                                'youtube': {
+                                    'player_client': client_list,
+                                }
+                            },
                         }
-                    },
-                }
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    info = ydl.extract_info(url, download=False)
+                        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                            info = ydl.extract_info(url, download=False)
+                            if info:
+                                break
+                    except Exception as ex:
+                        last_err = ex
+                        continue
+
+                if not info:
+                    raise last_err or Exception("Could not extract video info from YouTube")
 
                 if 'entries' in info: info = info['entries'][0]
 
@@ -264,7 +285,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                 },
                 'extractor_args': {
                     'youtube': {
-                        'player_client': ['tv_embedded', 'web_embedded'],
+                        'player_client': ['tv_embedded', 'android', 'ios'],
                     }
                 },
             }
