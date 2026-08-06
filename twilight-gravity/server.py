@@ -82,6 +82,12 @@ SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
 class SPAServer(http.server.SimpleHTTPRequestHandler):
     def translate_path(self, path):
         clean = path.split('?')[0].rstrip('/')
+        if clean in ['/sitemap.xml', '/sitemap']:
+            for candidate in [os.path.join(SERVER_DIR, 'sitemap.xml'), os.path.join(os.path.dirname(SERVER_DIR), 'sitemap.xml')]:
+                if os.path.exists(candidate): return candidate
+        if clean == '/robots.txt':
+            for candidate in [os.path.join(SERVER_DIR, 'robots.txt'), os.path.join(os.path.dirname(SERVER_DIR), 'robots.txt')]:
+                if os.path.exists(candidate): return candidate
         if clean in ['/ytdownloader', '/streamvault', '/home', '/experience', '/youtube', '/contact', '/feedback', '/stats', ''] or not os.path.exists(os.path.join(SERVER_DIR, clean.lstrip('/'))):
             clean = '/index.html'
         return os.path.join(SERVER_DIR, clean.lstrip('/'))
@@ -307,6 +313,30 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
             parsed_path = urllib.parse.urlparse(self.path)
             path_str = parsed_path.path
             query_params = urllib.parse.parse_qs(parsed_path.query)
+
+            # Direct XML Sitemap serving
+            if path_str in ['/sitemap.xml', '/sitemap']:
+                for s_path in [os.path.join(SERVER_DIR, 'sitemap.xml'), os.path.join(os.path.dirname(SERVER_DIR), 'sitemap.xml')]:
+                    if os.path.exists(s_path):
+                        with open(s_path, 'rb') as f: content = f.read()
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'application/xml; charset=utf-8')
+                        self.send_header('Content-Length', str(len(content)))
+                        self.end_headers()
+                        self.wfile.write(content)
+                        return
+
+            # Direct robots.txt serving
+            if path_str == '/robots.txt':
+                for r_path in [os.path.join(SERVER_DIR, 'robots.txt'), os.path.join(os.path.dirname(SERVER_DIR), 'robots.txt')]:
+                    if os.path.exists(r_path):
+                        with open(r_path, 'rb') as f: content = f.read()
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'text/plain; charset=utf-8')
+                        self.send_header('Content-Length', str(len(content)))
+                        self.end_headers()
+                        self.wfile.write(content)
+                        return
 
             # Real-time Download Progress Endpoint
             if path_str == '/api/progress':
