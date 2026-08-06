@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.add('modal-open');
             document.body.style.overflow = 'hidden';
             // Switch page title to YT Downloader when modal opens
-            document.title = 'Amit Kushwaha - YouTube Video Downloader 4K & MP3 | StreamVault';
+            document.title = 'Amit Kushwaha - YT Video Downloader';
 
             // Auto-focus input box on desktop devices only (prevents unwanted mobile virtual keyboard popup)
             const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 768);
