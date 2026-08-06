@@ -1,15 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 0. Preloader Logic
+    // 0. Preloader Failsafe Logic — Ensures website always opens instantly
     const preloader = document.getElementById('preloader');
     if (preloader) {
-        window.addEventListener('load', () => {
+        const removePreloader = () => {
+            preloader.classList.add('fade-out');
             setTimeout(() => {
-                preloader.classList.add('fade-out');
-                setTimeout(() => {
-                    preloader.style.display = 'none';
-                }, 500);
-            }, 800);
-        });
+                preloader.style.display = 'none';
+            }, 400);
+        };
+
+        if (document.readyState === 'complete') {
+            removePreloader();
+        } else {
+            window.addEventListener('load', removePreloader, { once: true });
+            setTimeout(removePreloader, 1000); // 1-second failsafe guarantee
+        }
     }
 
     // Clean Subdirectory URL Path Routing for Mobile & Desktop (/home, /experience, /youtube, /ytdownloader, /streamvault, /contact, /stats, /feedback)
