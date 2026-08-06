@@ -2162,7 +2162,15 @@ function displayResults(data) {
   if (title) title.textContent = data.title;
   if (channel) channel.textContent = data.channel;
   if (views) {
-    views.textContent = data.views || (data.viewCount ? Number(data.viewCount).toLocaleString('en-IN') + ' views' : '1,250,000 views');
+    let vText = data.views;
+    if (!vText || vText.includes('1,250,000') || vText === 'N/A') {
+      if (data.viewCount && data.viewCount > 0) {
+        vText = Number(data.viewCount).toLocaleString('en-IN') + ' views';
+      } else {
+        vText = 'Live Stream Views';
+      }
+    }
+    views.textContent = vText;
   }
   if (duration) duration.textContent = data.duration;
 
