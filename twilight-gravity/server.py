@@ -385,11 +385,13 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                 height_match = re.search(r'(\d+)p', quality_param)
                 target_h = height_match.group(1) if height_match else ''
 
-                if format_id and format_id not in ['bestvideo+bestaudio/best', 'best']:
-                    # FORCE exact selected video resolution format + best audio track
-                    ydl_opts['format'] = f"{format_id}+bestaudio/bestvideo[format_id={format_id}]+bestaudio/{format_id}/bestvideo+bestaudio/best"
-                elif target_h:
-                    ydl_opts['format'] = f"bestvideo[height<={target_h}]+bestaudio/bestvideo+bestaudio/best"
+                if format_id:
+                    if '+' in format_id or '[' in format_id or '/' in format_id:
+                        ydl_opts['format'] = format_id
+                    elif target_h:
+                        ydl_opts['format'] = f"bestvideo[height<={target_h}]+bestaudio/bestvideo[format_id={format_id}]+bestaudio/{format_id}/bestvideo+bestaudio/best"
+                    else:
+                        ydl_opts['format'] = f"{format_id}+bestaudio/bestvideo+bestaudio/best"
                 else:
                     ydl_opts['format'] = 'bestvideo+bestaudio/best'
 
