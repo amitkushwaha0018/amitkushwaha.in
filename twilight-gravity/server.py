@@ -18,10 +18,39 @@ import imageio_ffmpeg
 import uuid
 
 import http.cookiejar
+import zipfile
+import io
 
 PORT = int(os.environ.get('PORT', 7777))
 TOKEN_FILE = 'yt_tokens.json'
 active_downloads = {}
+
+def ensure_deno_installed():
+    try:
+        deno_dir = os.path.join(tempfile.gettempdir(), 'deno_bin')
+        os.makedirs(deno_dir, exist_ok=True)
+        deno_exe = os.path.join(deno_dir, 'deno.exe' if os.name == 'nt' else 'deno')
+        if not os.path.exists(deno_exe):
+            print("Downloading Deno JS engine for yt-dlp signature solving...")
+            if os.name == 'nt':
+                url = "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-pc-windows-msvc.zip"
+            else:
+                url = "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip"
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                z = zipfile.ZipFile(io.BytesIO(resp.read()))
+                z.extractall(deno_dir)
+            if os.name != 'nt' and os.path.exists(deno_exe):
+                os.chmod(deno_exe, 0o755)
+        os.environ['PATH'] = deno_dir + os.pathsep + os.environ.get('PATH', '')
+        print(f"Deno JS engine ready at: {deno_exe}")
+        return deno_exe
+    except Exception as e:
+        print(f"Deno install warning: {e}")
+        return None
+
+# Ensure Deno JS Engine is ready on server start
+ensure_deno_installed()
 
 def ensure_youtube_cookies(cookies_file):
     try:
