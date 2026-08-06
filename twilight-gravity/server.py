@@ -24,8 +24,11 @@ TOKEN_FILE = 'yt_tokens.json'
 active_downloads = {}
 
 def ensure_youtube_cookies(cookies_file):
-    # Disabled - clean requests without cookies bypass YouTube bot verification on cloud IPs
-    pass
+    try:
+        if os.path.exists(cookies_file):
+            os.remove(cookies_file)
+    except Exception:
+        pass
 
 # Ensure FFmpeg is available on PATH for StreamVault engine
 try:
@@ -448,6 +451,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             'no_warnings': True,
                             'nocheckcertificate': True,
                             'geo_bypass': True,
+                            'cookiefile': None,
                             'socket_timeout': 30,
                             'retries': 5,
                             'fragment_retries': 5,
