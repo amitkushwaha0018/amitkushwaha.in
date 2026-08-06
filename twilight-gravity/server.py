@@ -292,10 +292,17 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     title = flat_info.get('title') or 'YouTube Video'
                     author = flat_info.get('uploader') or flat_info.get('channel') or 'YouTube Creator'
                     thumbnail = flat_info.get('thumbnail') or f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
-                    dur_sec = flat_info.get('duration', 0)
-                    view_cnt = flat_info.get('view_count', 0)
+                    if not view_cnt or view_cnt == 0:
+                        view_cnt = get_real_youtube_metadata(video_id)
 
-                    if not title or title == 'YouTube Video' or dur_sec == 0 or view_cnt == 0:
+                    raw_views = 0
+                    try:
+                        raw_views = int(view_cnt) if view_cnt else 0
+                    except:
+                        pass
+                    views_str = f"{raw_views:,} views" if raw_views > 0 else "High Stream Volume"
+
+                    if not title or title == 'YouTube Video' or dur_sec == 0:
                         try:
                             oembed_url = f'https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={video_id}&format=json'
                             req = urllib.request.Request(oembed_url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -313,7 +320,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                         'duration': format_duration(dur_sec) if dur_sec > 0 else '03:45',
                         'duration_sec': dur_sec or 225,
                         'channel': author,
-                        'views': f"{view_cnt:,}" if view_cnt > 0 else "1,250,000",
+                        'views': views_str,
+                        'viewCount': raw_views,
                         'video_options': [
                             {'format_id': 'bestvideo[height<=2160]+bestaudio/best[height<=2160]/best', 'quality': '2160p', 'resolution': '2160p 4K Ultra HD (Original)', 'ext': 'mp4', 'filesize_str': 'Original 4K', 'fps': 60, 'has_audio': True},
                             {'format_id': 'bestvideo[height<=1440]+bestaudio/best[height<=1440]/best', 'quality': '1440p', 'resolution': '1440p 2K QHD (Original)', 'ext': 'mp4', 'filesize_str': 'Original 2K', 'fps': 60, 'has_audio': True},
