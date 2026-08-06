@@ -59,13 +59,20 @@ def ensure_pytubefix_installed():
     except ImportError:
         print("Installing pytubefix dynamically...")
         try:
-            import subprocess, sys
+            import subprocess, sys, site, importlib
             subprocess.check_call([sys.executable, "-m", "pip", "install", "pytubefix>=10.11.0"])
+            site.main()
+            importlib.invalidate_caches()
             print("pytubefix dynamic installation complete!")
         except Exception as e:
             print(f"pytubefix install warning: {e}")
 
 ensure_pytubefix_installed()
+
+try:
+    from pytubefix import YouTube
+except Exception:
+    YouTube = None
 
 def ensure_youtube_cookies(cookies_file):
     try:
@@ -481,36 +488,36 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                 target_out = os.path.join(temp_dir, f"media.{'mp3' if media_type == 'audio' else 'mp4'}")
 
                 try:
-                    from pytubefix import YouTube
-                    yt_obj = None
-                    for c_name in ['MWEB', 'TV_EMBEDDED', 'WEB', 'IOS']:
-                        try:
-                            yt_obj = YouTube(url, client=c_name)
-                            if yt_obj and yt_obj.streams:
-                                break
-                        except Exception:
-                            continue
+                    if YouTube is not None:
+                        yt_obj = None
+                        for c_name in ['MWEB', 'TV_EMBEDDED', 'WEB', 'IOS']:
+                            try:
+                                yt_obj = YouTube(url, client=c_name)
+                                if yt_obj and yt_obj.streams:
+                                    break
+                            except Exception:
+                                continue
 
-                    if yt_obj:
-                        stream = None
-                        out_ext = 'mp3' if media_type == 'audio' else 'mp4'
-                        if media_type == 'audio':
-                            stream = yt_obj.streams.filter(only_audio=True).first() or yt_obj.streams.filter(progressive=True).first()
-                        else:
-                            height_match = re.search(r'(\d+)p', quality_param)
-                            target_h = height_match.group(1) if height_match else ''
-                            if target_h:
-                                stream = yt_obj.streams.filter(res=f"{target_h}p", progressive=True).first()
-                            if not stream:
-                                stream = yt_obj.streams.get_highest_resolution() or yt_obj.streams.filter(progressive=True).first()
+                        if yt_obj:
+                            stream = None
+                            out_ext = 'mp3' if media_type == 'audio' else 'mp4'
+                            if media_type == 'audio':
+                                stream = yt_obj.streams.filter(only_audio=True).first() or yt_obj.streams.filter(progressive=True).first()
+                            else:
+                                height_match = re.search(r'(\d+)p', quality_param)
+                                target_h = height_match.group(1) if height_match else ''
+                                if target_h:
+                                    stream = yt_obj.streams.filter(res=f"{target_h}p", progressive=True).first()
+                                if not stream:
+                                    stream = yt_obj.streams.get_highest_resolution() or yt_obj.streams.filter(progressive=True).first()
 
-                        if stream:
-                            target_filename = f"{safe_title}.{out_ext}"
-                            stream.download(output_path=temp_dir, filename=target_filename)
-                            target_pytube = os.path.join(temp_dir, target_filename)
-                            if os.path.exists(target_pytube) and os.path.getsize(target_pytube) > 0:
-                                download_success = True
-                                direct_stream_downloaded = True
+                            if stream:
+                                target_filename = f"{safe_title}.{out_ext}"
+                                stream.download(output_path=temp_dir, filename=target_filename)
+                                target_pytube = os.path.join(temp_dir, target_filename)
+                                if os.path.exists(target_pytube) and os.path.getsize(target_pytube) > 0:
+                                    download_success = True
+                                    direct_stream_downloaded = True
                 except Exception as e_pt:
                     print(f"PyTubeFix primary extraction error: {e_pt}")
 
@@ -665,8 +672,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             last_dl_err = e_dl
                 if not download_success:
                     try:
-                        from pytubefix import YouTube
-                        yt_obj = None
+                        if YouTube is not None:
+                            yt_obj = None
                         for c_name in ['MWEB', 'TV_EMBEDDED', 'WEB', 'IOS']:
                             try:
                                 yt_obj = YouTube(url, client=c_name)
