@@ -441,94 +441,111 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             'eta_str': '0s'
                         }
 
-                cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
-                ensure_youtube_cookies(cookies_path)
-                ydl_opts = {
-                    'outtmpl': out_template,
-                    'quiet': True,
-                    'no_warnings': True,
-                    'nocheckcertificate': True,
-                    'geo_bypass': True,
-                    'socket_timeout': 30,
-                    'retries': 10,
-                    'fragment_retries': 10,
-                    'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
-                    'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264'],
-                    'concurrent_fragment_downloads': 4,
-                    'buffersize': 1024 * 1024,
-                    'merge_output_format': 'mp4',
-                    'progress_hooks': [yt_progress_hook],
-                    'http_headers': {
-                        'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36',
-                        'Accept-Language': 'en-US,en;q=0.9',
-                    },
-                    'extractor_args': {
-                        'youtube': {
-                            'player_client': ['android_vr', 'android'],
+                client_options = [
+                    ['ios', 'android'],
+                    ['android_vr', 'android'],
+                    ['mweb', 'android'],
+                    ['android_creator', 'android'],
+                    ['web']
+                ]
+
+                download_success = False
+                last_dl_err = None
+
+                for client_list in client_options:
+                    try:
+                        cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
+                        ensure_youtube_cookies(cookies_path)
+                        ydl_opts = {
+                            'outtmpl': out_template,
+                            'quiet': True,
+                            'no_warnings': True,
+                            'nocheckcertificate': True,
+                            'geo_bypass': True,
+                            'socket_timeout': 30,
+                            'retries': 5,
+                            'fragment_retries': 5,
+                            'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
+                            'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264'],
+                            'concurrent_fragment_downloads': 4,
+                            'buffersize': 1024 * 1024,
+                            'merge_output_format': 'mp4',
+                            'progress_hooks': [yt_progress_hook],
+                            'http_headers': {
+                                'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36',
+                                'Accept-Language': 'en-US,en;q=0.9',
+                            },
+                            'extractor_args': {
+                                'youtube': {
+                                    'player_client': client_list,
+                                }
+                            },
                         }
-                    },
-                }
-                if os.path.exists(cookies_path):
-                    ydl_opts['cookiefile'] = cookies_path
+                        if os.path.exists(cookies_path):
+                            ydl_opts['cookiefile'] = cookies_path
 
-                if is_trimmed:
-                    ydl_opts['download_ranges'] = yt_dlp.utils.download_range_func(None, [(start_sec or 0, end_sec or float('inf'))])
-                    ydl_opts['force_keyframes_at_cuts'] = True
+                        if is_trimmed:
+                            ydl_opts['download_ranges'] = yt_dlp.utils.download_range_func(None, [(start_sec or 0, end_sec or float('inf'))])
+                            ydl_opts['force_keyframes_at_cuts'] = True
 
-                if media_type == 'audio':
-                    ydl_opts['format'] = f"{format_id}/bestaudio/best" if format_id else 'bestaudio/best'
-                    if query_params.get('raw', ['false'])[0] != 'true':
-                        ydl_opts['postprocessors'] = [{
-                            'key': 'FFmpegExtractAudio',
-                            'preferredcodec': 'mp3',
-                            'preferredquality': '320'
-                        }]
-                else:
-                    height_match = re.search(r'(\d+)p', quality_param)
-                    target_h = height_match.group(1) if height_match else ''
-
-                    if format_id:
-                        if '+' in format_id or '[' in format_id or '/' in format_id:
-                            ydl_opts['format'] = format_id
-                        elif target_h:
-                            ydl_opts['format'] = f"bestvideo[height<={target_h}]+bestaudio/bestvideo[format_id={format_id}]+bestaudio/{format_id}/bestvideo+bestaudio/best"
+                        if media_type == 'audio':
+                            ydl_opts['format'] = f"{format_id}/bestaudio/best" if format_id else 'bestaudio/best'
+                            if query_params.get('raw', ['false'])[0] != 'true':
+                                ydl_opts['postprocessors'] = [{
+                                    'key': 'FFmpegExtractAudio',
+                                    'preferredcodec': 'mp3',
+                                    'preferredquality': '320'
+                                }]
                         else:
-                            ydl_opts['format'] = f"{format_id}+bestaudio/bestvideo+bestaudio/best"
-                    else:
-                        ydl_opts['format'] = 'bestvideo+bestaudio/best'
+                            height_match = re.search(r'(\d+)p', quality_param)
+                            target_h = height_match.group(1) if height_match else ''
 
-                    # Full video: 100% bit-for-bit stream copy of video & audio
-                    # Trimmed clip: Visually lossless CRF 18 + AAC audio re-sync for 100% sound guarantee on all players
-                    if not is_trimmed:
-                        # Let yt-dlp natively merge best streams into MP4 with zero quality degradation
-                        ydl_opts['postprocessor_args'] = {
-                            'ffmpeg': [
-                                '-c:v', 'copy',
-                                '-c:a', 'aac',
-                                '-b:a', '320k'
-                            ]
-                        }
-                    else:
-                        # Visually pristine CRF 14 + 320kbps AAC audio for trimmed clips
-                        ydl_opts['postprocessor_args'] = {
-                            'ffmpeg': [
-                                '-avoid_negative_ts', 'make_zero',
-                                '-c:v', 'libx264',
-                                '-preset', 'medium',
-                                '-crf', '14',
-                                '-c:a', 'aac',
-                                '-b:a', '320k',
-                                '-async', '1'
-                            ]
-                        }
+                            if format_id:
+                                if '+' in format_id or '[' in format_id or '/' in format_id:
+                                    ydl_opts['format'] = format_id
+                                elif target_h:
+                                    ydl_opts['format'] = f"bestvideo[height<={target_h}]+bestaudio/bestvideo[format_id={format_id}]+bestaudio/{format_id}/bestvideo+bestaudio/best"
+                                else:
+                                    ydl_opts['format'] = f"{format_id}+bestaudio/bestvideo+bestaudio/best"
+                            else:
+                                ydl_opts['format'] = 'bestvideo+bestaudio/best'
+
+                            if not is_trimmed:
+                                ydl_opts['postprocessor_args'] = {
+                                    'ffmpeg': [
+                                        '-c:v', 'copy',
+                                        '-c:a', 'aac',
+                                        '-b:a', '320k'
+                                    ]
+                                }
+                            else:
+                                ydl_opts['postprocessor_args'] = {
+                                    'ffmpeg': [
+                                        '-avoid_negative_ts', 'make_zero',
+                                        '-c:v', 'libx264',
+                                        '-preset', 'medium',
+                                        '-crf', '14',
+                                        '-c:a', 'aac',
+                                        '-b:a', '320k',
+                                        '-async', '1'
+                                    ]
+                                }
+
+                        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                            ydl.download([url])
+
+                        downloaded_files = os.listdir(temp_dir)
+                        if downloaded_files:
+                            download_success = True
+                            break
+                    except Exception as e_dl:
+                        last_dl_err = e_dl
+                        continue
 
                 try:
-                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                        ydl.download([url])
-
-                    downloaded_files = os.listdir(temp_dir)
-                    if not downloaded_files:
-                        self._send_json({'error': 'Download failed'}, 500)
+                    downloaded_files = os.listdir(temp_dir) if os.path.exists(temp_dir) else []
+                    if not download_success or not downloaded_files:
+                        self._send_json({'error': f'Download failed: {str(last_dl_err or "No media downloaded")}'}, 500)
                         return
 
                     target_file = os.path.join(temp_dir, downloaded_files[0])
