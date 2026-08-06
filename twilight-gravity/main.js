@@ -2496,7 +2496,6 @@ async function startDownload(formatId, mediaType, quality, streamUrl = null) {
 
     isDone = true;
     clearInterval(pollInterval);
-    updateUI(100, '✅ Download Complete! File saved to your device.');
 
     const disposition = res.headers.get('Content-Disposition');
     let filename = `${currentVideoData.title}.${mediaType === 'audio' ? 'mp3' : 'mp4'}`;
@@ -2504,18 +2503,21 @@ async function startDownload(formatId, mediaType, quality, streamUrl = null) {
       filename = disposition.split('filename=')[1].replace(/["']/g, '');
     }
 
+    const saveLinkHtml = `<a href="${blobUrl}" download="${filename.replace(/"/g, '')}" style="color: #4ade80; text-decoration: underline; font-weight: 700; margin-left: 0.4rem;">💾 Click Here to Save File</a>`;
+    if (statusText) statusText.innerHTML = `✅ Download Complete! ${saveLinkHtml}`;
+    if (fillBar) fillBar.style.width = '100%';
+    if (percentText) percentText.textContent = '100%';
+
     const link = document.createElement('a');
     link.href = blobUrl;
     link.download = filename;
     document.body.appendChild(link);
-    link.click();
+    try { link.click(); } catch(e) {}
     document.body.removeChild(link);
 
     setTimeout(() => {
       window.URL.revokeObjectURL(blobUrl);
-      if (progressBox) progressBox.classList.add('hidden');
-      if (fillBar) fillBar.style.width = '0%';
-    }, 6000);
+    }, 60000);
 
   } catch (err) {
     isDone = true;
