@@ -52,6 +52,21 @@ def ensure_deno_installed():
 # Ensure Deno JS Engine is ready on server start
 DENO_EXE_PATH = ensure_deno_installed()
 
+def ensure_pytubefix_installed():
+    try:
+        import pytubefix
+        print("pytubefix is ready!")
+    except ImportError:
+        print("Installing pytubefix dynamically...")
+        try:
+            import subprocess, sys
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "pytubefix>=10.11.0"])
+            print("pytubefix dynamic installation complete!")
+        except Exception as e:
+            print(f"pytubefix install warning: {e}")
+
+ensure_pytubefix_installed()
+
 def ensure_youtube_cookies(cookies_file):
     try:
         with open(cookies_file, 'w', encoding='utf-8') as f:
