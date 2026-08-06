@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.remove('modal-open');
             document.body.style.overflow = '';
             // Restore portfolio title when modal closes
-            document.title = 'Amit Kushwaha - Educator & Content Creator';
+            document.title = 'Amit Kushwaha';
             if (window.location.protocol.startsWith('http') && (window.location.pathname.includes('ytdownloader') || window.location.pathname.includes('streamvault'))) {
                 window.history.pushState({}, document.title, '/home');
             }
