@@ -2156,34 +2156,17 @@ function displayResults(data) {
 
   if (thumb) {
     const vidId = data.id || data.video_id;
-    // data.thumbnail from server is already the correct YouTube CDN URL
-    const hqDef = vidId ? `https://img.youtube.com/vi/${vidId}/hqdefault.jpg` : '';
-    const mqDef = vidId ? `https://img.youtube.com/vi/${vidId}/mqdefault.jpg` : '';
-    thumb.src = data.thumbnail || (vidId ? `https://img.youtube.com/vi/${vidId}/maxresdefault.jpg` : '');
-    thumb.onerror = function() {
-      this.onerror = function() {
-        this.onerror = null;
-        this.src = mqDef;
-      };
-      this.src = hqDef;
-    };
+    if (vidId) {
+      thumb.src = `https://img.youtube.com/vi/${vidId}/hqdefault.jpg`;
+    } else if (data.thumbnail) {
+      thumb.src = data.thumbnail;
+    }
   }
   if (title) title.textContent = data.title;
   if (channel) channel.textContent = data.channel;
   if (views) {
-    let vText = data.views ? String(data.views) : '';
-    // Treat old hardcoded fallbacks as bad - these come from old/stuck server versions
-    const isBad = !vText || vText === 'N/A' || vText === '0' ||
-      vText === '1,250,000' || vText === '1250000' ||
-      vText.includes('Live Stream') || vText.includes('High Stream') ||
-      vText.includes('Popular Video') || vText.includes('Fetching');
-    if (isBad) {
-      const vc = Number(data.viewCount);
-      vText = (vc > 0) ? vc.toLocaleString('en-IN') + ' views' : '';
-    } else if (!vText.toLowerCase().includes('view')) {
-      vText += ' views';
-    }
-    views.textContent = vText;
+    views.textContent = '';
+    views.style.display = 'none';
   }
   if (duration) duration.textContent = data.duration;
 
