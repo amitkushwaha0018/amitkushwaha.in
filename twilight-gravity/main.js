@@ -2152,11 +2152,17 @@ function displayResults(data) {
 
   if (thumb) {
     const vidId = data.id || data.video_id;
-    const fallbackUrl = vidId ? `https://img.youtube.com/vi/${vidId}/hqdefault.jpg` : '';
-    thumb.src = data.thumbnail || fallbackUrl;
+    // Always force YouTube CDN thumbnail - never use yt-dlp signed URLs that expire
+    const maxRes = vidId ? `https://img.youtube.com/vi/${vidId}/maxresdefault.jpg` : '';
+    const hqDef  = vidId ? `https://img.youtube.com/vi/${vidId}/hqdefault.jpg` : '';
+    const mqDef  = vidId ? `https://img.youtube.com/vi/${vidId}/mqdefault.jpg` : '';
+    thumb.src = maxRes || data.thumbnail || hqDef;
     thumb.onerror = function() {
-      this.onerror = null;
-      if (fallbackUrl) this.src = fallbackUrl;
+      this.onerror = function() {
+        this.onerror = null;
+        if (mqDef) this.src = mqDef;
+      };
+      if (hqDef) this.src = hqDef;
     };
   }
   if (title) title.textContent = data.title;
