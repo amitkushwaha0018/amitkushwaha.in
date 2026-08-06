@@ -2045,7 +2045,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 const isLocalTesting = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('10.') || window.location.hostname.startsWith('192.168.') || window.location.protocol === 'file:';
-const API_BASE_URL = isLocalTesting ? (window.location.port ? `${window.location.protocol}//${window.location.hostname}:${window.location.port}` : 'http://127.0.0.1:8888') : 'https://amitkushwaha-streamvault.onrender.com';
+const API_BASE_URL = isLocalTesting ? (window.location.port ? `${window.location.protocol}//${window.location.hostname}:${window.location.port}` : 'http://127.0.0.1:7777') : 'https://amitkushwaha-streamvault.onrender.com';
 
 let currentVideoData = null;
 
@@ -2150,7 +2150,14 @@ function displayResults(data) {
   const views = document.getElementById('meta-views');
   const duration = document.getElementById('meta-duration');
 
-  if (thumb) thumb.src = data.thumbnail;
+  if (thumb) {
+    thumb.src = data.thumbnail || (data.video_id ? `https://img.youtube.com/vi/${data.video_id}/hqdefault.jpg` : '');
+    thumb.onerror = function() {
+      if (data.video_id) {
+        this.src = `https://img.youtube.com/vi/${data.video_id}/hqdefault.jpg`;
+      }
+    };
+  }
   if (title) title.textContent = data.title;
   if (channel) channel.textContent = data.channel;
   if (views) views.textContent = data.views;

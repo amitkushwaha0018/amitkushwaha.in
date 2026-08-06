@@ -19,7 +19,7 @@ import uuid
 
 import http.cookiejar
 
-PORT = int(os.environ.get('PORT', 8888))
+PORT = int(os.environ.get('PORT', 7777))
 TOKEN_FILE = 'yt_tokens.json'
 active_downloads = {}
 
