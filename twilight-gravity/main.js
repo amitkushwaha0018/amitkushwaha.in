@@ -2078,51 +2078,53 @@ async function processUrl() {
   let maxRetries = 3;
   let attempt = 0;
 
-  while (attempt < maxRetries) {
-    try {
-      if (attempt > 0) {
-        showStatus(`🚀 Waking up cloud engine (Attempt ${attempt + 1}/${maxRetries})... Please wait a few seconds...`, 'info', true);
-        await new Promise(res => setTimeout(res, 4000));
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/info`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
-      });
-
-      const rawText = await response.text();
-      if (!rawText || rawText.trim() === '') {
-        throw new Error('Empty response from server');
-      }
-
+  try {
+    while (attempt < maxRetries) {
       try {
-        data = JSON.parse(rawText);
-      } catch (parseErr) {
-        throw new Error('Invalid response structure');
-      }
+        if (attempt > 0) {
+          showStatus(`🚀 Waking up cloud engine (Attempt ${attempt + 1}/${maxRetries})... Please wait a few seconds...`, 'info', true);
+          await new Promise(res => setTimeout(res, 4000));
+        }
 
-      if (!response.ok || data.error) {
-        showStatus(data.error || 'Failed to fetch video details.', 'error');
-        return;
-      }
+        const response = await fetch(`${API_BASE_URL}/api/info`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
 
-      // Success! Break retry loop
-      break;
-    } catch (err) {
-      attempt++;
-      if (attempt >= maxRetries) {
-        showStatus(`Connection error: Unable to reach download server. Please check your internet or try again in a few seconds.`, 'error');
-        return;
+        const rawText = await response.text();
+        if (!rawText || rawText.trim() === '') {
+          throw new Error('Empty response from server');
+        }
+
+        try {
+          data = JSON.parse(rawText);
+        } catch (parseErr) {
+          throw new Error('Invalid response structure');
+        }
+
+        if (!response.ok || data.error) {
+          showStatus(data.error || 'Failed to fetch video details.', 'error');
+          return;
+        }
+
+        // Success! Break retry loop
+        break;
+      } catch (err) {
+        attempt++;
+        if (attempt >= maxRetries) {
+          showStatus(`Connection error: Unable to reach download server. Please check your internet or try again in a few seconds.`, 'error');
+          return;
+        }
       }
     }
-  }
 
-  if (data) {
-    currentVideoData = data;
-    currentVideoData.original_url = url;
-    displayResults(data);
-    hideStatus();
+    if (data) {
+      currentVideoData = data;
+      currentVideoData.original_url = url;
+      displayResults(data);
+      hideStatus();
+    }
   } finally {
     if (fetchBtn) {
       fetchBtn.disabled = false;
