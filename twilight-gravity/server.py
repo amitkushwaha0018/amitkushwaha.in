@@ -77,18 +77,15 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     'geo_bypass': True,
                     'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264', 'acodec:m4a', 'acodec:opus'],
                     'http_headers': {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                        'User-Agent': 'Mozilla/5.0 (ChromeCast; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 CrKey/1.54.250320',
                         'Accept-Language': 'en-US,en;q=0.9',
                         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                     },
                     'extractor_args': {
                         'youtube': {
-                            'player_client': ['ios', 'mweb'],
-                            'skip': ['dash', 'hls'],
+                            'player_client': ['tv_embedded', 'web_embedded'],
                         }
                     },
-                    'sleep_interval': 1,
-                    'max_sleep_interval': 3,
                 }
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     info = ydl.extract_info(url, download=False)
@@ -261,12 +258,12 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                 'merge_output_format': 'mp4',
                 'progress_hooks': [yt_progress_hook],
                 'http_headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                    'User-Agent': 'Mozilla/5.0 (ChromeCast; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 CrKey/1.54.250320',
                     'Accept-Language': 'en-US,en;q=0.9',
                 },
                 'extractor_args': {
                     'youtube': {
-                        'player_client': ['ios', 'mweb'],
+                        'player_client': ['tv_embedded', 'web_embedded'],
                     }
                 },
             }
