@@ -241,6 +241,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                         'channel': author,
                         'views': 'N/A',
                         'video_options': [
+                            {'format_id': 'bestvideo[height<=2160]+bestaudio/best[height<=2160]/best', 'quality': '2160p', 'resolution': '2160p 4K Ultra HD (Original)', 'ext': 'mp4', 'filesize_str': 'Original 4K', 'fps': 60, 'has_audio': True},
+                            {'format_id': 'bestvideo[height<=1440]+bestaudio/best[height<=1440]/best', 'quality': '1440p', 'resolution': '1440p 2K QHD (Original)', 'ext': 'mp4', 'filesize_str': 'Original 2K', 'fps': 60, 'has_audio': True},
                             {'format_id': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]/best', 'quality': '1080p', 'resolution': '1080p Full HD (Original)', 'ext': 'mp4', 'filesize_str': 'Original HD', 'fps': 60, 'has_audio': True},
                             {'format_id': 'bestvideo[height<=720]+bestaudio/best[height<=720]/best', 'quality': '720p', 'resolution': '720p HD (Original)', 'ext': 'mp4', 'filesize_str': 'HD Stream', 'fps': 30, 'has_audio': True},
                             {'format_id': 'bestvideo[height<=480]+bestaudio/best[height<=480]/best', 'quality': '480p', 'resolution': '480p SD (Original)', 'ext': 'mp4', 'filesize_str': 'Standard Stream', 'fps': 30, 'has_audio': True},
