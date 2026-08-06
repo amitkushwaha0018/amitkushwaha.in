@@ -437,20 +437,19 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     ['web']
                 ]
 
-                download_success = False
-                last_dl_err = None
+                clean_cookie_file = os.path.join(temp_dir, 'clean_cookies.txt')
+                with open(clean_cookie_file, 'w') as f_c:
+                    f_c.write('# Netscape HTTP Cookie File\n')
 
                 for client_list in client_options:
                     try:
-                        cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
-                        ensure_youtube_cookies(cookies_path)
                         ydl_opts = {
                             'outtmpl': out_template,
                             'quiet': True,
                             'no_warnings': True,
                             'nocheckcertificate': True,
                             'geo_bypass': True,
-                            'cookiefile': None,
+                            'cookiefile': clean_cookie_file,
                             'socket_timeout': 30,
                             'retries': 5,
                             'fragment_retries': 5,
