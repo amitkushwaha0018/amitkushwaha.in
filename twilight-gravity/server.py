@@ -163,9 +163,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                     'player_client': client_list,
                                 }
                             },
-                        }
-                        if os.path.exists(cookies_path):
-                            ydl_opts['cookiefile'] = cookies_path
+                        # Do not pass invalid cookiefile - clean requests bypass bot checks on cloud IPs
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             info = ydl.extract_info(url, download=False)
                             if info:
@@ -481,8 +479,6 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                 }
                             },
                         }
-                        if os.path.exists(cookies_path):
-                            ydl_opts['cookiefile'] = cookies_path
 
                         if is_trimmed:
                             ydl_opts['download_ranges'] = yt_dlp.utils.download_range_func(None, [(start_sec or 0, end_sec or float('inf'))])
