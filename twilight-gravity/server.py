@@ -520,13 +520,10 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                 'buffersize': 1024 * 1024,
                                 'merge_output_format': 'mp4',
                                 'progress_hooks': [yt_progress_hook],
-                                'http_headers': {
-                                    'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36',
-                                    'Accept-Language': 'en-US,en;q=0.9',
-                                },
                                 'extractor_args': {
                                     'youtube': {
                                         'player_client': client_list,
+                                        'player_skip': ['configs', 'webpage'],
                                     }
                                 },
                             }
