@@ -1,3 +1,7 @@
+"""
+StreamVault Server Engine v3.0 - YouTube Downloader API
+Fast extract_flat metadata pass + oEmbed fallback
+"""
 import http.server
 import socketserver
 import os
