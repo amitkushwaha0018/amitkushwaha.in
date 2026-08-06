@@ -460,38 +460,42 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             if info_m:
                                 formats_m = info_m.get('formats', [])
                                 stream_url = None
+                                stream_hdrs = {'User-Agent': 'Mozilla/5.0'}
 
                                 if media_type == 'audio':
                                     for f in formats_m:
                                         if f.get('acodec') != 'none' and f.get('vcodec') == 'none' and f.get('url'):
                                             stream_url = f.get('url')
+                                            stream_hdrs = f.get('http_headers', stream_hdrs)
                                             break
                                     if not stream_url and formats_m:
                                         for f in formats_m:
                                             if f.get('url'):
                                                 stream_url = f.get('url')
+                                                stream_hdrs = f.get('http_headers', stream_hdrs)
                                                 break
                                 else:
                                     height_match = re.search(r'(\d+)p', quality_param)
                                     target_h = int(height_match.group(1)) if height_match else 0
                                     
-                                    best_match = None
+                                    best_fmt = None
                                     for f in formats_m:
                                         if f.get('url') and f.get('vcodec') != 'none':
                                             h = f.get('height') or 0
                                             if target_h and h == target_h and f.get('acodec') != 'none':
-                                                best_match = f.get('url')
+                                                best_fmt = f
                                                 break
                                             elif target_h and h == target_h:
-                                                best_match = f.get('url')
-                                            elif not best_match or (h <= (target_h or 720) and h > 0):
-                                                best_match = f.get('url')
-                                    stream_url = best_match
+                                                best_fmt = f
+                                            elif not best_fmt or (h <= (target_h or 720) and h > 0):
+                                                best_fmt = f
+                                    
+                                    if best_fmt:
+                                        stream_url = best_fmt.get('url')
+                                        stream_hdrs = best_fmt.get('http_headers', stream_hdrs)
 
                                 if stream_url:
-                                    req_s = urllib.request.Request(stream_url, headers={
-                                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-                                    })
+                                    req_s = urllib.request.Request(stream_url, headers=stream_hdrs)
                                     with urllib.request.urlopen(req_s, timeout=60) as resp_s, open(target_out, 'wb') as out_f:
                                         shutil.copyfileobj(resp_s, out_f)
                                     if os.path.exists(target_out) and os.path.getsize(target_out) > 0:
