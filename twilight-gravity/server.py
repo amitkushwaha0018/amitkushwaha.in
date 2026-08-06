@@ -83,6 +83,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
 
                 for client_list in client_options:
                     try:
+                        cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
                         ydl_opts = {
                             'quiet': True,
                             'no_warnings': True,
@@ -100,6 +101,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                 }
                             },
                         }
+                        if os.path.exists(cookies_path):
+                            ydl_opts['cookiefile'] = cookies_path
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             info = ydl.extract_info(url, download=False)
                             if info:
@@ -268,6 +271,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                         'eta_str': '0s'
                     }
 
+            cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
             ydl_opts = {
                 'outtmpl': out_template,
                 'quiet': True,
@@ -289,6 +293,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     }
                 },
             }
+            if os.path.exists(cookies_path):
+                ydl_opts['cookiefile'] = cookies_path
 
             if is_trimmed:
                 ydl_opts['download_ranges'] = yt_dlp.utils.download_range_func(None, [(start_sec or 0, end_sec or float('inf'))])
