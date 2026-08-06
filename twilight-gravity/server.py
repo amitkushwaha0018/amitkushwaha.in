@@ -269,6 +269,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             {'format_id': 'bestaudio/best', 'quality': '320 kbps Original', 'ext': 'mp3', 'filesize_str': 'High Quality Audio', 'bitrate': 320}
                         ]
                     })
+            except Exception as e:
+                self._send_json({'error': f'Failed to process YouTube URL: {str(e)}'}, 500)
         else:
             self._send_json({'error': 'Endpoint not found'}, 404)
 
