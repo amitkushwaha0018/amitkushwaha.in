@@ -486,9 +486,9 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             height_match = re.search(r'(\d+)p', quality_param)
                             target_h = height_match.group(1) if height_match else ''
                             if target_h:
-                                ydl_opts['format'] = f"best[height<={target_h}]/best"
+                                ydl_opts['format'] = f"18/22/b/best[height<={target_h}]/best"
                             else:
-                                ydl_opts['format'] = "best[height<=720]/best"
+                                ydl_opts['format'] = "18/22/b/best"
 
                             if not is_trimmed:
                                 ydl_opts['postprocessor_args'] = {
