@@ -83,7 +83,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     },
                     'extractor_args': {
                         'youtube': {
-                            'player_client': ['tv_embedded', 'web_embedded'],
+                            'player_client': ['android', 'ios', 'mweb'],
                         }
                     },
                 }
@@ -171,7 +171,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                 })
 
             except Exception as e:
-                self._send_json({'error': f'Failed to process YouTube URL: {str(e)}'}, 500)
+                import traceback
+                self._send_json({'error': f'Failed to process YouTube URL: {str(e)}', 'trace': traceback.format_exc()}, 500)
         else:
             self._send_json({'error': 'Endpoint not found'}, 404)
 
