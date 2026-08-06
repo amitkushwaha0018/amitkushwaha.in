@@ -40,6 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.classList.add('active');
             document.body.classList.add('modal-open');
             document.body.style.overflow = 'hidden';
+            // Switch page title to YT Downloader when modal opens
+            document.title = 'Amit Kushwaha - YouTube Video Downloader 4K & MP3 | StreamVault';
 
             // Auto-focus input box on desktop devices only (prevents unwanted mobile virtual keyboard popup)
             const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 768);
@@ -63,6 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.classList.remove('active');
             document.body.classList.remove('modal-open');
             document.body.style.overflow = '';
+            // Restore portfolio title when modal closes
+            document.title = 'Amit Kushwaha - Educator & Content Creator';
             if (window.location.protocol.startsWith('http') && (window.location.pathname.includes('ytdownloader') || window.location.pathname.includes('streamvault'))) {
                 window.history.pushState({}, document.title, '/home');
             }
@@ -2169,17 +2173,21 @@ function displayResults(data) {
   if (channel) channel.textContent = data.channel;
   if (views) {
     let vText = data.views;
-    if (!vText || vText.includes('Live Stream') || vText.includes('High Stream') || vText === 'N/A' || vText === '0') {
-      if (data.viewCount && data.viewCount > 0) {
+    // Strip any old hardcoded fallback values
+    const isBadFallback = !vText || vText === 'N/A' || vText === '0' ||
+      vText.includes('Live Stream') || vText.includes('High Stream') ||
+      vText.includes('Popular Video');
+    if (isBadFallback) {
+      if (data.viewCount && Number(data.viewCount) > 0) {
         vText = Number(data.viewCount).toLocaleString('en-IN') + ' views';
       } else {
-        vText = '5,828,902 views';
+        vText = 'Fetching views...';
       }
     }
-    if (!vText.toLowerCase().includes('view')) {
+    if (vText && !vText.toLowerCase().includes('view')) {
       vText += ' views';
     }
-    views.textContent = vText;
+    views.textContent = vText || '';
   }
   if (duration) duration.textContent = data.duration;
 
