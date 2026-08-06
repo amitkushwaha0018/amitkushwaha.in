@@ -1,0 +1,9 @@
+# Netscape HTTP Cookie File
+# http://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated cookie file for YouTube bot bypass.
+
+.youtube.com	TRUE	/	TRUE	2147483647	GPS	1
+.youtube.com	TRUE	/	TRUE	2147483647	YSC	9a8b7c6d5e4
+.youtube.com	TRUE	/	TRUE	2147483647	PREF	f4=4000000&tz=UTC
+.youtube.com	TRUE	/	TRUE	2147483647	VISITOR_INFO1_LIVE	q_aB1c2D3eF4g5H
+.youtube.com	TRUE	/	TRUE	2147483647	SOCS	CAISNQgDEitib3FfaWRlbnRpdHlmcm9udGVuZHVpc2VydmVyXzIwMjQwMjI3LjA2X3AwABgEIAEaBmluX0lO
