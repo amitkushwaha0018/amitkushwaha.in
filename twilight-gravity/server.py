@@ -13,9 +13,27 @@ import yt_dlp
 import imageio_ffmpeg
 import uuid
 
+import http.cookiejar
+
 PORT = int(os.environ.get('PORT', 5000))
 TOKEN_FILE = 'yt_tokens.json'
 active_downloads = {}
+
+def ensure_youtube_cookies(cookies_file):
+    try:
+        if os.path.exists(cookies_file) and (time.time() - os.path.getmtime(cookies_file)) < 21600:
+            return
+        cj = http.cookiejar.MozillaCookieJar(cookies_file)
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+        req = urllib.request.Request('https://www.youtube.com', headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+        })
+        with opener.open(req, timeout=10) as r:
+            pass
+        cj.save(ignore_discard=True, ignore_expires=True)
+    except Exception as e:
+        print(f"Cookie generation warning: {e}")
 
 # Ensure FFmpeg is available on PATH for StreamVault engine
 try:
@@ -84,6 +102,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                 for client_list in client_options:
                     try:
                         cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
+                        ensure_youtube_cookies(cookies_path)
                         ydl_opts = {
                             'quiet': True,
                             'no_warnings': True,
@@ -272,6 +291,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     }
 
             cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
+            ensure_youtube_cookies(cookies_path)
             ydl_opts = {
                 'outtmpl': out_template,
                 'quiet': True,
