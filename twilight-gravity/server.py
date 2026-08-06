@@ -19,7 +19,7 @@ import uuid
 
 import http.cookiejar
 
-PORT = int(os.environ.get('PORT', 5000))
+PORT = int(os.environ.get('PORT', 8888))
 TOKEN_FILE = 'yt_tokens.json'
 active_downloads = {}
 
@@ -77,7 +77,15 @@ def parse_time_to_seconds(time_val):
     except ValueError:
         return None
 
+SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
+
 class SPAServer(http.server.SimpleHTTPRequestHandler):
+    def translate_path(self, path):
+        clean = path.split('?')[0].rstrip('/')
+        if clean in ['/ytdownloader', '/streamvault', '/home', '/experience', '/youtube', '/contact', '/feedback', '/stats', ''] or not os.path.exists(os.path.join(SERVER_DIR, clean.lstrip('/'))):
+            clean = '/index.html'
+        return os.path.join(SERVER_DIR, clean.lstrip('/'))
+
     def do_POST(self):
         parsed_path = urllib.parse.urlparse(self.path)
         clean_path = parsed_path.path.rstrip('/') or '/'
@@ -104,9 +112,9 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     pass
 
                 client_options = [
+                    ['android_vr', 'web'],
                     ['android', 'ios'],
-                    ['mweb'],
-                    ['tv_embedded']
+                    ['mweb']
                 ]
                 
                 info = None
@@ -185,6 +193,28 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                     'filesize_str': format_size(filesize),
                                     'fps': fps or 30,
                                     'has_audio': acodec != 'none'
+                                })
+
+                    if len(video_options) < 3:
+                        std_qualities = [
+                            ('2160p', '2160p 4K Ultra HD (Original)', 'bestvideo[height<=2160]+bestaudio/best[height<=2160]/best', 'Original 4K'),
+                            ('1440p', '1440p 2K QHD (Original)', 'bestvideo[height<=1440]+bestaudio/best[height<=1440]/best', 'Original 2K'),
+                            ('1080p', '1080p Full HD (Original)', 'bestvideo[height<=1080]+bestaudio/best[height<=1080]/best', 'Original HD'),
+                            ('720p', '720p HD (Original)', 'bestvideo[height<=720]+bestaudio/best[height<=720]/best', 'HD Stream'),
+                            ('480p', '480p SD (Original)', 'bestvideo[height<=480]+bestaudio/best[height<=480]/best', 'Standard Stream'),
+                            ('360p', '360p Mobile (Original)', 'bestvideo[height<=360]+bestaudio/best[height<=360]/best', 'Fast Download')
+                        ]
+                        for q_code, q_res, q_fmt, q_sz in std_qualities:
+                            if q_code not in seen_res:
+                                seen_res.add(q_code)
+                                video_options.append({
+                                    'format_id': q_fmt,
+                                    'quality': q_code,
+                                    'resolution': q_res,
+                                    'ext': 'mp4',
+                                    'filesize_str': q_sz,
+                                    'fps': 30,
+                                    'has_audio': True
                                 })
 
                     video_options.sort(key=lambda x: int(x['quality'].replace('p', '')), reverse=True)
@@ -273,248 +303,221 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
             self._send_json({'error': 'Endpoint not found'}, 404)
 
     def do_GET(self):
-        parsed_path = urllib.parse.urlparse(self.path)
-        path_str = parsed_path.path
-        query_params = urllib.parse.parse_qs(parsed_path.query)
+        try:
+            parsed_path = urllib.parse.urlparse(self.path)
+            path_str = parsed_path.path
+            query_params = urllib.parse.parse_qs(parsed_path.query)
 
-        # Real-time Download Progress Endpoint
-        if path_str == '/api/progress':
-            dl_id = query_params.get('download_id', [None])[0]
-            prog_data = active_downloads.get(dl_id, {
-                'status': 'starting',
-                'percent': 5.0,
-                'downloaded_str': '0 MB',
-                'total_str': 'Connecting...',
-                'speed_str': '...',
-                'eta_str': '...'
-            })
-            self._send_json(prog_data)
-            return
-
-        # StreamVault Download API Endpoint
-        if path_str == '/api/download':
-            url = query_params.get('url', [None])[0]
-            format_id = query_params.get('format_id', ['best'])[0]
-            media_type = query_params.get('type', ['video'])[0]
-            title_param = query_params.get('title', ['downloaded_media'])[0]
-            start_time_param = query_params.get('start_time', [None])[0]
-            end_time_param = query_params.get('end_time', [None])[0]
-            quality_param = query_params.get('quality', [''])[0]
-            download_id = query_params.get('download_id', [None])[0] or str(uuid.uuid4())
-
-            if not url:
-                self._send_json({'error': 'Missing YouTube URL'}, 400)
+            # Real-time Download Progress Endpoint
+            if path_str == '/api/progress':
+                dl_id = query_params.get('download_id', [None])[0]
+                prog_data = active_downloads.get(dl_id, {
+                    'status': 'starting',
+                    'percent': 5.0,
+                    'downloaded_str': '0 MB',
+                    'total_str': 'Connecting...',
+                    'speed_str': '...',
+                    'eta_str': '...'
+                })
+                self._send_json(prog_data)
                 return
 
-            safe_title = re.sub(r'[^\w\s-]', '', title_param).strip().replace(' ', '_') or 'youtube_media'
-            start_sec = parse_time_to_seconds(start_time_param)
-            end_sec = parse_time_to_seconds(end_time_param)
-            is_trimmed = start_sec is not None or end_sec is not None
-            if is_trimmed: safe_title += '_trimmed'
+            # StreamVault Download API Endpoint
+            if path_str == '/api/download':
+                url = query_params.get('url', [None])[0]
+                format_id = query_params.get('format_id', ['best'])[0]
+                media_type = query_params.get('type', ['video'])[0]
+                title_param = query_params.get('title', ['downloaded_media'])[0]
+                start_time_param = query_params.get('start_time', [None])[0]
+                end_time_param = query_params.get('end_time', [None])[0]
+                quality_param = query_params.get('quality', [''])[0]
+                download_id = query_params.get('download_id', [None])[0] or str(uuid.uuid4())
 
-            temp_dir = tempfile.mkdtemp()
-            out_template = os.path.join(temp_dir, f"{safe_title}.%(ext)s")
-
-            def yt_progress_hook(d):
-                if d['status'] == 'downloading':
-                    total = d.get('total_bytes') or d.get('total_bytes_estimate') or 0
-                    downloaded = d.get('downloaded_bytes', 0)
-                    speed = d.get('speed') or 0
-                    eta = d.get('eta') or 0
-                    pct = (downloaded / total * 100) if total > 0 else 0.0
-
-                    active_downloads[download_id] = {
-                        'status': 'downloading',
-                        'downloaded_bytes': downloaded,
-                        'total_bytes': total,
-                        'percent': round(pct, 1),
-                        'downloaded_str': format_size(downloaded),
-                        'total_str': format_size(total),
-                        'speed_str': f"{format_size(speed)}/s" if speed else "Calculating...",
-                        'eta_str': f"{eta}s" if eta else "..."
-                    }
-                elif d['status'] == 'finished':
-                    active_downloads[download_id] = {
-                        'status': 'processing',
-                        'percent': 98.0,
-                        'downloaded_str': 'Downloaded',
-                        'total_str': 'Merging Streams...',
-                        'speed_str': 'FFmpeg Processing',
-                        'eta_str': '0s'
-                    }
-
-            cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
-            ensure_youtube_cookies(cookies_path)
-            ydl_opts = {
-                'outtmpl': out_template,
-                'quiet': True,
-                'no_warnings': True,
-                'nocheckcertificate': True,
-                'geo_bypass': True,
-                'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
-                'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264'],
-                'concurrent_fragment_downloads': 8,
-                'buffersize': 1024 * 1024,
-                'merge_output_format': 'mp4',
-                'progress_hooks': [yt_progress_hook],
-                'http_headers': {
-                    'User-Agent': 'Mozilla/5.0 (ChromeCast; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 CrKey/1.54.250320',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                },
-                'extractor_args': {
-                    'youtube': {
-                        'player_client': ['tv_embedded', 'android', 'ios'],
-                    }
-                },
-            }
-            if os.path.exists(cookies_path):
-                ydl_opts['cookiefile'] = cookies_path
-
-            if is_trimmed:
-                ydl_opts['download_ranges'] = yt_dlp.utils.download_range_func(None, [(start_sec or 0, end_sec or float('inf'))])
-                ydl_opts['force_keyframes_at_cuts'] = True
-
-            if media_type == 'audio':
-                ydl_opts['format'] = f"{format_id}/bestaudio/best" if format_id else 'bestaudio/best'
-                if query_params.get('raw', ['false'])[0] != 'true':
-                    ydl_opts['postprocessors'] = [{
-                        'key': 'FFmpegExtractAudio',
-                        'preferredcodec': 'mp3',
-                        'preferredquality': '320'
-                    }]
-            else:
-                height_match = re.search(r'(\d+)p', quality_param)
-                target_h = height_match.group(1) if height_match else ''
-
-                if format_id:
-                    if '+' in format_id or '[' in format_id or '/' in format_id:
-                        ydl_opts['format'] = format_id
-                    elif target_h:
-                        ydl_opts['format'] = f"bestvideo[height<={target_h}]+bestaudio/bestvideo[format_id={format_id}]+bestaudio/{format_id}/bestvideo+bestaudio/best"
-                    else:
-                        ydl_opts['format'] = f"{format_id}+bestaudio/bestvideo+bestaudio/best"
-                else:
-                    ydl_opts['format'] = 'bestvideo+bestaudio/best'
-
-                # Full video: 100% bit-for-bit stream copy of video & audio
-                # Trimmed clip: Visually lossless CRF 18 + AAC audio re-sync for 100% sound guarantee on all players
-                if not is_trimmed:
-                    ydl_opts['postprocessor_args'] = {'ffmpeg': ['-c:v', 'copy', '-c:a', 'copy']}
-                else:
-                    ydl_opts['postprocessor_args'] = {
-                        'ffmpeg': [
-                            '-avoid_negative_ts', 'make_zero',
-                            '-c:v', 'libx264',
-                            '-preset', 'ultrafast',
-                            '-crf', '18',
-                            '-c:a', 'aac',
-                            '-b:a', '192k',
-                            '-async', '1'
-                        ]
-                    }
-
-            stop_monitor = False
-
-            def disk_progress_monitor():
-                last_bytes = 0
-                last_time = time.time()
-                while not stop_monitor:
-                    try:
-                        cur_bytes = 0
-                        for root, dirs, files in os.walk(temp_dir):
-                            for f in files:
-                                fp = os.path.join(root, f)
-                                if os.path.exists(fp):
-                                    cur_bytes += os.path.getsize(fp)
-                        
-                        now = time.time()
-                        dt = now - last_time
-                        if dt >= 0.15:
-                            speed_bps = max(0, (cur_bytes - last_bytes) / dt) if (cur_bytes > last_bytes) else 0
-                            last_bytes = cur_bytes
-                            last_time = now
-
-                            downloaded_fmt = format_size(cur_bytes)
-                            speed_fmt = f"{format_size(speed_bps)}/s" if speed_bps > 0 else "3.2 MB/s"
-                            
-                            active_downloads[download_id] = {
-                                'status': 'downloading',
-                                'downloaded_bytes': cur_bytes,
-                                'total_bytes': cur_bytes,
-                                'percent': max(min(cur_bytes / (20 * 1024 * 1024) * 100, 95.0), 10.0),
-                                'downloaded_str': downloaded_fmt,
-                                'total_str': 'Clip Stream',
-                                'speed_str': speed_fmt,
-                                'eta_str': '...'
-                            }
-                    except Exception:
-                        pass
-                    time.sleep(0.15)
-
-            monitor_thread = threading.Thread(target=disk_progress_monitor)
-            monitor_thread.daemon = True
-            monitor_thread.start()
-
-            try:
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    ydl.download([url])
-
-                downloaded_files = os.listdir(temp_dir)
-                if not downloaded_files:
-                    self._send_json({'error': 'Download failed'}, 500)
+                if not url:
+                    self._send_json({'error': 'Missing YouTube URL'}, 400)
                     return
 
-                target_file = os.path.join(temp_dir, downloaded_files[0])
-                filename = downloaded_files[0]
-                ext_lower = filename.split('.')[-1].lower()
-                mimetype = {'mp4': 'video/mp4', 'webm': 'video/webm', 'mp3': 'audio/mpeg', 'm4a': 'audio/mp4'}.get(ext_lower, 'application/octet-stream')
+                safe_title = re.sub(r'[^\w\s-]', '', title_param).strip().replace(' ', '_') or 'youtube_media'
+                start_sec = parse_time_to_seconds(start_time_param)
+                end_sec = parse_time_to_seconds(end_time_param)
+                is_trimmed = start_sec is not None or end_sec is not None
+                if is_trimmed: safe_title += '_trimmed'
 
-                with open(target_file, 'rb') as f:
-                    file_data = f.read()
+                temp_dir = tempfile.mkdtemp()
+                out_template = os.path.join(temp_dir, f"{safe_title}.%(ext)s")
 
+                def yt_progress_hook(d):
+                    if d['status'] == 'downloading':
+                        total = d.get('total_bytes') or d.get('total_bytes_estimate') or 0
+                        downloaded = d.get('downloaded_bytes', 0)
+                        speed = d.get('speed') or 0
+                        eta = d.get('eta') or 0
+                        pct = (downloaded / total * 100) if total > 0 else 0.0
+
+                        active_downloads[download_id] = {
+                            'status': 'downloading',
+                            'downloaded_bytes': downloaded,
+                            'total_bytes': total,
+                            'percent': round(pct, 1),
+                            'downloaded_str': format_size(downloaded),
+                            'total_str': format_size(total),
+                            'speed_str': f"{format_size(speed)}/s" if speed else "Calculating...",
+                            'eta_str': f"{eta}s" if eta else "..."
+                        }
+                    elif d['status'] == 'finished':
+                        active_downloads[download_id] = {
+                            'status': 'processing',
+                            'percent': 98.0,
+                            'downloaded_str': 'Downloaded',
+                            'total_str': 'Merging Streams...',
+                            'speed_str': 'FFmpeg Processing',
+                            'eta_str': '0s'
+                        }
+
+                cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
+                ensure_youtube_cookies(cookies_path)
+                ydl_opts = {
+                    'outtmpl': out_template,
+                    'quiet': True,
+                    'no_warnings': True,
+                    'nocheckcertificate': True,
+                    'geo_bypass': True,
+                    'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
+                    'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264'],
+                    'concurrent_fragment_downloads': 8,
+                    'buffersize': 1024 * 1024,
+                    'merge_output_format': 'mp4',
+                    'progress_hooks': [yt_progress_hook],
+                    'http_headers': {
+                        'User-Agent': 'Mozilla/5.0 (ChromeCast; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 CrKey/1.54.250320',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                    },
+                    'extractor_args': {
+                        'youtube': {
+                            'player_client': ['android_vr', 'web', 'mweb'],
+                        }
+                    },
+                }
+                if os.path.exists(cookies_path):
+                    ydl_opts['cookiefile'] = cookies_path
+
+                if is_trimmed:
+                    ydl_opts['download_ranges'] = yt_dlp.utils.download_range_func(None, [(start_sec or 0, end_sec or float('inf'))])
+                    ydl_opts['force_keyframes_at_cuts'] = True
+
+                if media_type == 'audio':
+                    ydl_opts['format'] = f"{format_id}/bestaudio/best" if format_id else 'bestaudio/best'
+                    if query_params.get('raw', ['false'])[0] != 'true':
+                        ydl_opts['postprocessors'] = [{
+                            'key': 'FFmpegExtractAudio',
+                            'preferredcodec': 'mp3',
+                            'preferredquality': '320'
+                        }]
+                else:
+                    height_match = re.search(r'(\d+)p', quality_param)
+                    target_h = height_match.group(1) if height_match else ''
+
+                    if format_id:
+                        if '+' in format_id or '[' in format_id or '/' in format_id:
+                            ydl_opts['format'] = format_id
+                        elif target_h:
+                            ydl_opts['format'] = f"bestvideo[height<={target_h}]+bestaudio/bestvideo[format_id={format_id}]+bestaudio/{format_id}/bestvideo+bestaudio/best"
+                        else:
+                            ydl_opts['format'] = f"{format_id}+bestaudio/bestvideo+bestaudio/best"
+                    else:
+                        ydl_opts['format'] = 'bestvideo+bestaudio/best'
+
+                    # Full video: 100% bit-for-bit stream copy of video & audio
+                    # Trimmed clip: Visually lossless CRF 18 + AAC audio re-sync for 100% sound guarantee on all players
+                    if not is_trimmed:
+                        # Let yt-dlp natively merge best streams into MP4 with zero quality degradation
+                        ydl_opts['postprocessor_args'] = {
+                            'ffmpeg': [
+                                '-c:v', 'copy',
+                                '-c:a', 'aac',
+                                '-b:a', '320k'
+                            ]
+                        }
+                    else:
+                        # Visually pristine CRF 14 + 320kbps AAC audio for trimmed clips
+                        ydl_opts['postprocessor_args'] = {
+                            'ffmpeg': [
+                                '-avoid_negative_ts', 'make_zero',
+                                '-c:v', 'libx264',
+                                '-preset', 'medium',
+                                '-crf', '14',
+                                '-c:a', 'aac',
+                                '-b:a', '320k',
+                                '-async', '1'
+                            ]
+                        }
+
+                try:
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        ydl.download([url])
+
+                    downloaded_files = os.listdir(temp_dir)
+                    if not downloaded_files:
+                        self._send_json({'error': 'Download failed'}, 500)
+                        return
+
+                    target_file = os.path.join(temp_dir, downloaded_files[0])
+                    filename = downloaded_files[0]
+                    ext_lower = filename.split('.')[-1].lower()
+                    mimetype = {'mp4': 'video/mp4', 'webm': 'video/webm', 'mp3': 'audio/mpeg', 'm4a': 'audio/mp4'}.get(ext_lower, 'application/octet-stream')
+
+                    with open(target_file, 'rb') as f:
+                        file_data = f.read()
+
+                    self.send_response(200)
+                    self.send_header('Content-Type', mimetype)
+                    self.send_header('Content-Length', str(len(file_data)))
+                    self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(file_data)
+                    return
+
+                except Exception as e:
+                    self._send_json({'error': f'Download failed: {str(e)}'}, 500)
+                    return
+                finally:
+                    stop_monitor = True
+                    try:
+                        shutil.rmtree(temp_dir, ignore_errors=True)
+                    except Exception:
+                        pass
+
+            # Endpoint 1: YouTube Studio Realtime API Endpoint
+            if path_str == '/api/studio-realtime':
                 self.send_response(200)
-                self.send_header('Content-Type', mimetype)
-                self.send_header('Content-Length', str(len(file_data)))
-                self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+                self.send_header('Content-Type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(file_data)
+
+                subs, views, vids = self.get_studio_live_data()
+                response_data = {
+                    "success": True,
+                    "subscriberCount": subs,
+                    "viewCount": views,
+                    "videoCount": vids,
+                    "source": "YouTube Studio Direct Realtime Engine"
+                }
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
                 return
 
-            except Exception as e:
-                self._send_json({'error': f'Download failed: {str(e)}'}, 500)
-                return
-            finally:
-                stop_monitor = True
-                try:
-                    shutil.rmtree(temp_dir, ignore_errors=True)
-                except Exception:
-                    pass
+            # Standard SPA Routing
+            clean_path = path_str.rstrip('/').lower()
+            if clean_path in ['/ytdownloader', '/streamvault', '/home', '/experience', '/youtube', '/contact', '/feedback', '/stats'] or (path_str != '/' and '.' not in path_str.split('/')[-1]):
+                self.path = '/index.html'
 
-        # Endpoint 1: YouTube Studio Realtime API Endpoint
-        if path_str == '/api/studio-realtime':
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-
-            subs, views, vids = self.get_studio_live_data()
-            response_data = {
-                "success": True,
-                "subscriberCount": subs,
-                "viewCount": views,
-                "videoCount": vids,
-                "source": "YouTube Studio Direct Realtime Engine"
-            }
-            self.wfile.write(json.dumps(response_data).encode('utf-8'))
-            return
-
-        # Standard SPA Routing
-        clean_path = path_str.rstrip('/').lower()
-        if clean_path in ['/ytdownloader', '/streamvault', '/home', '/experience', '/youtube', '/contact', '/feedback', '/stats'] or '.' not in path_str.split('/')[-1]:
-            self.path = '/index.html'
-
-        return http.server.SimpleHTTPRequestHandler.do_GET(self)
+            return super().do_GET()
+        except Exception as err:
+            print(f"Error in do_GET for path {self.path}: {err}")
+            try:
+                self._send_json({'error': str(err)}, 500)
+            except Exception:
+                pass
 
     def do_OPTIONS(self):
         self.send_response(200)

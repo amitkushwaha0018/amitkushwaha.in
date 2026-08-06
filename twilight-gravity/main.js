@@ -2045,7 +2045,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 const isLocalTesting = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('10.') || window.location.hostname.startsWith('192.168.') || window.location.protocol === 'file:';
-const API_BASE_URL = isLocalTesting ? 'http://127.0.0.1:5000' : 'https://amitkushwaha-streamvault.onrender.com';
+const API_BASE_URL = isLocalTesting ? (window.location.port ? `${window.location.protocol}//${window.location.hostname}:${window.location.port}` : 'http://127.0.0.1:8888') : 'https://amitkushwaha-streamvault.onrender.com';
 
 let currentVideoData = null;
 
@@ -2451,14 +2451,10 @@ async function startDownload(formatId, mediaType, quality, streamUrl = null) {
             const dlStr = pData.downloaded_str || "0 MB";
             const totStr = (pData.total_str && pData.total_str !== '0 MB' && pData.total_str !== dlStr) ? ` of ${pData.total_str}` : '';
             
-            const msg = `⚡ Downloading ${mediaName}: ${dlStr}${totStr} (${Math.round(targetPct)}%) • 🚀 Speed: ${speedStr}`;
-
-            if (currentPct < targetPct) {
-              currentPct += Math.max(1, (targetPct - currentPct) * 0.4);
-            } else {
-              currentPct = Math.min(currentPct + 1, 94);
-            }
-            updateUI(currentPct, msg);
+            currentPct = Math.max(currentPct, targetPct);
+            const displayPct = Math.round(currentPct);
+            const msg = `⚡ Downloading ${mediaName}: ${dlStr}${totStr} (${displayPct}%) • 🚀 Speed: ${speedStr}`;
+            updateUI(displayPct, msg);
           } else if (pData.status === 'processing') {
             targetPct = Math.max(targetPct, 85);
             if (currentPct < 95) currentPct += 1.5;
