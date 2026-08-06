@@ -118,8 +118,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     pass
 
                 client_options = [
-                    ['android_vr', 'web'],
-                    ['android', 'ios'],
+                    ['tv_embedded', 'android', 'ios'],
+                    ['android_vr', 'android'],
                     ['mweb']
                 ]
                 
@@ -424,7 +424,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     },
                     'extractor_args': {
                         'youtube': {
-                            'player_client': ['android_vr', 'web', 'mweb'],
+                            'player_client': ['tv_embedded', 'android', 'ios', 'android_vr'],
                         }
                     },
                 }
