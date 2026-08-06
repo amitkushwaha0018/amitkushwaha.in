@@ -148,6 +148,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             'extractor_args': {
                                 'youtube': {
                                     'player_client': client_list,
+                                    'player_skip': ['configs', 'webpage'],
                                 }
                             },
                         }# Do not pass invalid cookiefile - clean requests bypass bot checks on cloud IPs
@@ -443,7 +444,12 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             'geo_bypass': True,
                             'socket_timeout': 15,
                             'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264', 'acodec:m4a', 'acodec:opus'],
-                            'extractor_args': {'youtube': {'player_client': client_list}},
+                            'extractor_args': {
+                                'youtube': {
+                                    'player_client': client_list,
+                                    'player_skip': ['configs', 'webpage'],
+                                }
+                            },
                         }
                         with yt_dlp.YoutubeDL(ydl_opts_meta) as ydl_m:
                             info_m = ydl_m.extract_info(url, download=False)
