@@ -58,7 +58,8 @@ def parse_time_to_seconds(time_val):
 class SPAServer(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         parsed_path = urllib.parse.urlparse(self.path)
-        if parsed_path.path == '/api/info':
+        clean_path = parsed_path.path.rstrip('/') or '/'
+        if clean_path == '/api/info':
             content_len = int(self.headers.get('Content-Length', 0))
             post_body = self.rfile.read(content_len)
             try:
@@ -74,7 +75,20 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     'extract_flat': False,
                     'nocheckcertificate': True,
                     'geo_bypass': True,
-                    'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264', 'acodec:m4a', 'acodec:opus']
+                    'format_sort': ['res', 'fps', 'hdr:12', 'vcodec:vp9', 'vcodec:h264', 'acodec:m4a', 'acodec:opus'],
+                    'http_headers': {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    },
+                    'extractor_args': {
+                        'youtube': {
+                            'player_client': ['ios', 'mweb'],
+                            'skip': ['dash', 'hls'],
+                        }
+                    },
+                    'sleep_interval': 1,
+                    'max_sleep_interval': 3,
                 }
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     info = ydl.extract_info(url, download=False)
@@ -161,6 +175,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
 
             except Exception as e:
                 self._send_json({'error': f'Failed to process YouTube URL: {str(e)}'}, 500)
+        else:
+            self._send_json({'error': 'Endpoint not found'}, 404)
 
     def do_GET(self):
         parsed_path = urllib.parse.urlparse(self.path)
@@ -243,7 +259,16 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                 'concurrent_fragment_downloads': 8,
                 'buffersize': 1024 * 1024,
                 'merge_output_format': 'mp4',
-                'progress_hooks': [yt_progress_hook]
+                'progress_hooks': [yt_progress_hook],
+                'http_headers': {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                },
+                'extractor_args': {
+                    'youtube': {
+                        'player_client': ['ios', 'mweb'],
+                    }
+                },
             }
 
             if is_trimmed:
