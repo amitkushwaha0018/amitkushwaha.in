@@ -2154,20 +2154,39 @@ function displayResults(data) {
   const views = document.getElementById('meta-views');
   const duration = document.getElementById('meta-duration');
 
+  if (views) {
+    views.remove();
+  }
+
   if (thumb) {
-    const vidId = data.id || data.video_id;
-    if (vidId) {
-      thumb.src = `https://img.youtube.com/vi/${vidId}/hqdefault.jpg`;
-    } else if (data.thumbnail) {
-      thumb.src = data.thumbnail;
+    let vidId = data.id || data.video_id;
+    if (!vidId && data.url) {
+      const match = data.url.match(/(?:v=|\/|be\/)([a-zA-Z0-9_-]{11})/);
+      if (match) vidId = match[1];
     }
+
+    const fallbackUrls = [];
+    if (vidId) {
+      fallbackUrls.push(`https://img.youtube.com/vi/${vidId}/hqdefault.jpg`);
+      fallbackUrls.push(`https://img.youtube.com/vi/${vidId}/mqdefault.jpg`);
+      fallbackUrls.push(`https://img.youtube.com/vi/${vidId}/0.jpg`);
+    }
+    if (data.thumbnail) {
+      fallbackUrls.push(data.thumbnail);
+    }
+    fallbackUrls.push('https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600&auto=format&fit=crop&q=80');
+
+    let attemptIdx = 0;
+    thumb.onerror = function() {
+      attemptIdx++;
+      if (attemptIdx < fallbackUrls.length) {
+        this.src = fallbackUrls[attemptIdx];
+      }
+    };
+    thumb.src = fallbackUrls[0];
   }
   if (title) title.textContent = data.title;
   if (channel) channel.textContent = data.channel;
-  if (views) {
-    views.textContent = '';
-    views.style.display = 'none';
-  }
   if (duration) duration.textContent = data.duration;
 
   const trimmerCheck = document.getElementById('enable-trimmer');
