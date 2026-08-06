@@ -613,7 +613,30 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                 break
                         except Exception as e_dl:
                             last_dl_err = e_dl
-                            continue
+                if not download_success:
+                    try:
+                        from pytubefix import YouTube
+                        yt_obj = YouTube(url, client='MWEB')
+                        stream = None
+                        if media_type == 'audio':
+                            stream = yt_obj.streams.filter(only_audio=True).first() or yt_obj.streams.filter(progressive=True).first()
+                        else:
+                            height_match = re.search(r'(\d+)p', quality_param)
+                            target_h = height_match.group(1) if height_match else ''
+                            if target_h:
+                                stream = yt_obj.streams.filter(res=f"{target_h}p", progressive=True).first()
+                            if not stream:
+                                stream = yt_obj.streams.get_highest_resolution() or yt_obj.streams.filter(progressive=True).first()
+
+                        if stream and stream.url:
+                            target_pytube = os.path.join(temp_dir, f"{safe_title}.mp4")
+                            req_p = urllib.request.Request(stream.url, headers={'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X)'})
+                            with urllib.request.urlopen(req_p, timeout=60) as resp_p, open(target_pytube, 'wb') as out_p:
+                                shutil.copyfileobj(resp_p, out_p)
+                            if os.path.exists(target_pytube) and os.path.getsize(target_pytube) > 0:
+                                download_success = True
+                    except Exception as e_pt:
+                        print(f"PyTubeFix fallback error: {e_pt}")
 
                 try:
                     media_files = [f for f in os.listdir(temp_dir) if not f.endswith('.txt') and not f.endswith('.part') and not f.endswith('.ytdl')] if os.path.exists(temp_dir) else []
