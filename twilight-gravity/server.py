@@ -181,7 +181,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     if 'entries' in info: info = info['entries'][0]
                     video_id = info.get('id', '') or flat_info.get('id', '')
                     title = info.get('title') or flat_info.get('title', 'Unknown Title')
-                    thumbnail = info.get('thumbnail') or flat_info.get('thumbnail') or f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
+                    # Always use YouTube CDN thumbnail - never rely on signed/expiring URLs from yt-dlp
+                    thumbnail = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg" if video_id else (info.get('thumbnail') or f"https://img.youtube.com/vi//maxresdefault.jpg")
                     duration_sec = info.get('duration') or flat_info.get('duration', 0)
                     channel = info.get('uploader') or info.get('channel') or flat_info.get('uploader') or flat_info.get('channel', 'Unknown Channel')
                     view_count = info.get('view_count') or flat_info.get('view_count', 0)
@@ -279,7 +280,9 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                         raw_views = int(view_count) if view_count else 0
                     except:
                         pass
-                    views_str = f"{raw_views:,} views" if raw_views > 0 else "1,250,000 views"
+                    if raw_views == 0:
+                        raw_views = get_real_youtube_metadata(video_id)
+                    views_str = f"{raw_views:,} views" if raw_views > 0 else "Popular Video"
 
                     self._send_json({
                         'id': video_id, 'title': title, 'thumbnail': thumbnail,
@@ -293,7 +296,8 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                     
                     title = flat_info.get('title') or 'YouTube Video'
                     author = flat_info.get('uploader') or flat_info.get('channel') or 'YouTube Creator'
-                    thumbnail = flat_info.get('thumbnail') or f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
+                    # Always use YouTube CDN thumbnail
+                    thumbnail = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg" if video_id else flat_info.get('thumbnail', '')
                     if not view_cnt or view_cnt == 0:
                         view_cnt = get_real_youtube_metadata(video_id)
 
