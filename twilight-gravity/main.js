@@ -2156,38 +2156,34 @@ function displayResults(data) {
 
   if (thumb) {
     const vidId = data.id || data.video_id;
-    // Always force YouTube CDN thumbnail - never use yt-dlp signed URLs that expire
-    const maxRes = vidId ? `https://img.youtube.com/vi/${vidId}/maxresdefault.jpg` : '';
-    const hqDef  = vidId ? `https://img.youtube.com/vi/${vidId}/hqdefault.jpg` : '';
-    const mqDef  = vidId ? `https://img.youtube.com/vi/${vidId}/mqdefault.jpg` : '';
-    thumb.src = maxRes || data.thumbnail || hqDef;
+    // data.thumbnail from server is already the correct YouTube CDN URL
+    const hqDef = vidId ? `https://img.youtube.com/vi/${vidId}/hqdefault.jpg` : '';
+    const mqDef = vidId ? `https://img.youtube.com/vi/${vidId}/mqdefault.jpg` : '';
+    thumb.src = data.thumbnail || (vidId ? `https://img.youtube.com/vi/${vidId}/maxresdefault.jpg` : '');
     thumb.onerror = function() {
       this.onerror = function() {
         this.onerror = null;
-        if (mqDef) this.src = mqDef;
+        this.src = mqDef;
       };
-      if (hqDef) this.src = hqDef;
+      this.src = hqDef;
     };
   }
   if (title) title.textContent = data.title;
   if (channel) channel.textContent = data.channel;
   if (views) {
-    let vText = data.views;
-    // Strip any old hardcoded fallback values
-    const isBadFallback = !vText || vText === 'N/A' || vText === '0' ||
+    let vText = data.views ? String(data.views) : '';
+    // Treat old hardcoded fallbacks as bad - these come from old/stuck server versions
+    const isBad = !vText || vText === 'N/A' || vText === '0' ||
+      vText === '1,250,000' || vText === '1250000' ||
       vText.includes('Live Stream') || vText.includes('High Stream') ||
-      vText.includes('Popular Video');
-    if (isBadFallback) {
-      if (data.viewCount && Number(data.viewCount) > 0) {
-        vText = Number(data.viewCount).toLocaleString('en-IN') + ' views';
-      } else {
-        vText = 'Fetching views...';
-      }
-    }
-    if (vText && !vText.toLowerCase().includes('view')) {
+      vText.includes('Popular Video') || vText.includes('Fetching');
+    if (isBad) {
+      const vc = Number(data.viewCount);
+      vText = (vc > 0) ? vc.toLocaleString('en-IN') + ' views' : '';
+    } else if (!vText.toLowerCase().includes('view')) {
       vText += ' views';
     }
-    views.textContent = vText || '';
+    views.textContent = vText;
   }
   if (duration) duration.textContent = data.duration;
 
