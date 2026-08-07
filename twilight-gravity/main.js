@@ -1,18 +1,20 @@
-// Top-level instant preloader removal - runs immediately upon script load
-(function killPreloaderNow() {
-  const p = document.getElementById('preloader');
-  if (p) {
-    p.style.opacity = '0';
-    p.style.display = 'none';
-  }
-})();
-
 document.addEventListener('DOMContentLoaded', () => {
     // 0. Preloader Failsafe Logic — Ensures website always opens instantly
     const preloader = document.getElementById('preloader');
     if (preloader) {
-        preloader.style.opacity = '0';
-        preloader.style.display = 'none';
+        const removePreloader = () => {
+            preloader.classList.add('fade-out');
+            setTimeout(() => {
+                preloader.style.display = 'none';
+            }, 400);
+        };
+
+        if (document.readyState === 'complete') {
+            removePreloader();
+        } else {
+            window.addEventListener('load', removePreloader, { once: true });
+            setTimeout(removePreloader, 1000); // 1-second failsafe guarantee
+        }
     }
 
     // Clean Subdirectory URL Path Routing for Mobile & Desktop (/home, /experience, /youtube, /ytdownloader, /streamvault, /contact, /stats, /feedback)
@@ -2164,14 +2166,13 @@ function displayResults(data) {
     }
 
     const fallbackUrls = [];
+    if (vidId) {
+      fallbackUrls.push(`https://img.youtube.com/vi/${vidId}/hqdefault.jpg`);
+      fallbackUrls.push(`https://img.youtube.com/vi/${vidId}/mqdefault.jpg`);
+      fallbackUrls.push(`https://img.youtube.com/vi/${vidId}/0.jpg`);
+    }
     if (data.thumbnail) {
       fallbackUrls.push(data.thumbnail);
-    }
-    if (vidId) {
-      fallbackUrls.push(`https://i.ytimg.com/vi/${vidId}/hqdefault.jpg`);
-      fallbackUrls.push(`https://i.ytimg.com/vi/${vidId}/sddefault.jpg`);
-      fallbackUrls.push(`https://i.ytimg.com/vi/${vidId}/mqdefault.jpg`);
-      fallbackUrls.push(`https://i.ytimg.com/vi/${vidId}/0.jpg`);
     }
     fallbackUrls.push('https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600&auto=format&fit=crop&q=80');
 
@@ -2258,15 +2259,10 @@ function applyPreset(preset) {
   if (preset === 'reset') {
     startInput.value = "";
     endInput.value = "";
-  } else if (preset === '30s') {
+  } else if (typeof preset === 'number') {
     startInput.value = isLongVideo ? "00:00:00" : "00:00";
-    endInput.value = isLongVideo ? "00:00:30" : "00:30";
-  } else if (preset === '1m') {
-    startInput.value = isLongVideo ? "00:00:00" : "00:00";
-    endInput.value = isLongVideo ? "00:01:00" : "01:00";
-  } else if (preset === '5m') {
-    startInput.value = isLongVideo ? "00:00:00" : "00:00";
-    endInput.value = isLongVideo ? "00:05:00" : "05:00";
+    const endSec = Math.min(preset, currentVideoData.duration_sec || preset);
+    endInput.value = formatSecondsToTime(endSec);
   }
   updateTrimDuration();
 }
@@ -2275,11 +2271,10 @@ function updateTrimDuration() {
   const startInput = document.getElementById('trim-start');
   const endInput = document.getElementById('trim-end');
   const badge = document.getElementById('trim-duration-badge');
+  if (!startInput || !endInput || !badge) return;
 
-  if (!badge) return;
-
-  const rawStart = startInput ? startInput.value.trim() : "";
-  const rawEnd = endInput ? endInput.value.trim() : "";
+  const rawStart = startInput.value.trim();
+  const rawEnd = endInput.value.trim();
 
   if (rawStart && !isValidTimestampFormat(rawStart)) {
     badge.textContent = '⚠️ Invalid Start Format (Max 2 digits after colon)';
@@ -2333,7 +2328,8 @@ function renderVideoFormats(options) {
     card.className = 'glass-card';
     card.style.padding = '1.1rem 1.25rem';
     card.style.display = 'flex';
-    card.style.flexDirection = 'column';
+    card.style.justifyContent = 'space-between';
+    card.style.alignItems = 'center';
     card.style.background = 'rgba(15, 23, 42, 0.6)';
     card.style.border = '1px solid rgba(255, 255, 255, 0.1)';
     card.style.borderRadius = '0.85rem';
@@ -2355,21 +2351,19 @@ function renderVideoFormats(options) {
     }
 
     card.innerHTML = `
-      <div style="width: 100%;">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; width: 100%;">
-          <div style="font-weight: 700; color: #ffffff; font-size: 1.05rem; display: flex; align-items: center; gap: 0.4rem;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff3366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 8 6 4-6 4Z"/></svg>
-            ${resText}
-          </div>
-          <button class="sv-btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 99px; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.3);">
-            Download Video
-          </button>
+      <div>
+        <div style="font-weight: 700; color: #ffffff; font-size: 1.05rem; display: flex; align-items: center; gap: 0.4rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff3366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 8 6 4-6 4Z"/></svg>
+          ${resText}
         </div>
-        <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.6rem; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.5rem;">
+        <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.5rem;">
           <span>Format: MP4</span>
-          <span style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; padding: 0.2rem 0.65rem; border-radius: 0.4rem; font-weight: 600; font-size: 0.8rem;">💾 Size: ${estSizeStr}</span>
+          <span style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; padding: 0.1rem 0.5rem; border-radius: 0.3rem; font-weight: 600; font-size: 0.78rem;">💾 Size: ${estSizeStr}</span>
         </div>
       </div>
+      <button class="sv-btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 99px; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.3);">
+        Download Video
+      </button>
     `;
     const dlBtn = card.querySelector('button');
     dlBtn.addEventListener('click', () => {
@@ -2395,7 +2389,8 @@ function renderAudioFormats(options) {
     card.className = 'glass-card';
     card.style.padding = '1.1rem 1.25rem';
     card.style.display = 'flex';
-    card.style.flexDirection = 'column';
+    card.style.justifyContent = 'space-between';
+    card.style.alignItems = 'center';
     card.style.background = 'rgba(15, 23, 42, 0.6)';
     card.style.border = '1px solid rgba(255, 255, 255, 0.1)';
     card.style.borderRadius = '0.85rem';
@@ -2407,21 +2402,19 @@ function renderAudioFormats(options) {
     }
 
     card.innerHTML = `
-      <div style="width: 100%;">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; width: 100%;">
-          <div style="font-weight: 700; color: #ffffff; font-size: 1.05rem; display: flex; align-items: center; gap: 0.4rem;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-            MP3 Audio (${qualityLabel})
-          </div>
-          <button class="sv-btn-primary" style="background: linear-gradient(135deg, #06b6d4 0%, #0284c7 100%) !important; padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 99px; box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);">
-            Download MP3
-          </button>
+      <div>
+        <div style="font-weight: 700; color: #ffffff; font-size: 1.05rem; display: flex; align-items: center; gap: 0.4rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          MP3 Audio (${qualityLabel})
         </div>
-        <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.6rem; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.5rem;">
+        <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.5rem;">
           <span>Format: MP3 Audio</span>
-          <span style="background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(6, 182, 212, 0.4); color: #06b6d4; padding: 0.2rem 0.65rem; border-radius: 0.4rem; font-weight: 600; font-size: 0.8rem;">🎵 Size: ${estAudioSize}</span>
+          <span style="background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(6, 182, 212, 0.4); color: #06b6d4; padding: 0.1rem 0.5rem; border-radius: 0.3rem; font-weight: 600; font-size: 0.78rem;">🎵 Size: ${estAudioSize}</span>
         </div>
       </div>
+      <button class="sv-btn-primary" style="background: linear-gradient(135deg, #06b6d4 0%, #0284c7 100%) !important; padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 99px; box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);">
+        Download MP3
+      </button>
     `;
     const dlBtn = card.querySelector('button');
     dlBtn.addEventListener('click', () => {
@@ -2546,19 +2539,56 @@ async function startDownload(formatId, mediaType, quality, streamUrl = null) {
   }, 250);
 
   try {
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.target = '_blank';
-    link.setAttribute('download', `${currentVideoData.title}.${mediaType === 'audio' ? 'mp3' : 'mp4'}`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const controller = new AbortController();
+    // 8-minute timeout for large video downloads (Render free tier can be slow)
+    const timeoutId = setTimeout(() => controller.abort(), 8 * 60 * 1000);
+    let res;
+    try {
+      res = await fetch(downloadUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
+    } catch (fetchErr) {
+      clearTimeout(timeoutId);
+      if (fetchErr.name === 'AbortError') {
+        throw new Error('Download timed out. Server may be busy — please try again in a moment.');
+      }
+      throw fetchErr;
+    }
+    if (!res.ok) {
+      let errMsg = `Server error (Status ${res.status})`;
+      try {
+        const errData = await res.json();
+        if (errData && errData.error) errMsg = errData.error;
+      } catch (e) {}
+      throw new Error(errMsg);
+    }
+
+    const blob = await res.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
 
     isDone = true;
     clearInterval(pollInterval);
-    updateUI(100, `🚀 Download Started! Saving file directly to your device.`);
-    if (statusText) statusText.innerHTML = `✅ Download Started! If download didn't start automatically, <a href="${downloadUrl}" download style="color: #4ade80; text-decoration: underline; font-weight: 700;">Click Here to Direct Save</a>.`;
-  }
+
+    const disposition = res.headers.get('Content-Disposition');
+    let filename = `${currentVideoData.title}.${mediaType === 'audio' ? 'mp3' : 'mp4'}`;
+    if (disposition && disposition.includes('filename=')) {
+      filename = disposition.split('filename=')[1].replace(/["']/g, '');
+    }
+
+    const saveLinkHtml = `<a href="${blobUrl}" download="${filename.replace(/"/g, '')}" style="color: #4ade80; text-decoration: underline; font-weight: 700; margin-left: 0.4rem;">💾 Click Here to Save File</a>`;
+    if (statusText) statusText.innerHTML = `✅ Download Complete! ${saveLinkHtml}`;
+    if (fillBar) fillBar.style.width = '100%';
+    if (percentText) percentText.textContent = '100%';
+
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    try { link.click(); } catch(e) {}
+    document.body.removeChild(link);
+
+    setTimeout(() => {
+      window.URL.revokeObjectURL(blobUrl);
+    }, 60000);
 
   } catch (err) {
     isDone = true;
