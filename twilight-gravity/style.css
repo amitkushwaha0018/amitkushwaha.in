@@ -889,9 +889,9 @@ button {
     backdrop-filter: blur(10px);
     margin-bottom: 1.2rem;
     box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
-    opacity: 0;
-    transform: translateY(30px);
-    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.1s;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+    animation: royalSlideUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.1s;
 }
 
 .status-pulse-dot {
@@ -921,9 +921,7 @@ button {
     font-weight: 600;
     display: block;
     margin-bottom: 0.8rem;
-    opacity: 0;
-    transform: translateY(30px);
-    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.2s;
+    animation: royalSlideUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.2s;
 }
 
 .hero h1,
@@ -934,9 +932,7 @@ button {
     letter-spacing: -0.03em;
     margin-bottom: 0.8rem;
     color: var(--text-primary);
-    opacity: 0;
-    transform: translateY(30px);
-    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.3s;
+    animation: royalSlideUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.3s;
 }
 
 .hero .role {
@@ -944,9 +940,7 @@ button {
     color: var(--text-secondary);
     font-weight: 400;
     margin-bottom: 1.5rem;
-    opacity: 0;
-    transform: translateY(30px);
-    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.4s;
+    animation: royalSlideUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.4s;
 }
 
 .role-highlight {
@@ -968,9 +962,7 @@ button {
     color: var(--text-secondary);
     max-width: 500px;
     margin-bottom: 2rem;
-    opacity: 0;
-    transform: translateY(30px);
-    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.5s;
+    animation: royalSlideUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.5s;
 }
 
 /* Hero Dual CTA Buttons */
@@ -979,9 +971,7 @@ button {
     align-items: center;
     gap: 1.2rem;
     margin-top: 2rem;
-    opacity: 0;
-    transform: translateY(30px);
-    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.6s;
+    animation: royalSlideUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.6s;
 }
 
 .hero-btn {
@@ -1078,14 +1068,22 @@ button {
 }
 
 @keyframes royalSlideUp {
-    to {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
 @keyframes royalScaleIn {
-    to {
+    0% {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    100% {
         opacity: 1;
         transform: scale(1) translateY(0);
     }
