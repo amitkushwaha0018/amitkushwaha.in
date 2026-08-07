@@ -2292,16 +2292,14 @@ function updateTrimDuration() {
     return;
   }
 
-  // Default to 0 seconds if start input is empty
   const startSec = rawStart ? timeToSeconds(rawStart) : 0;
-  
-  // Default to total duration if end input is empty
   const totalDuration = (currentVideoData && currentVideoData.duration_sec) ? currentVideoData.duration_sec : 60;
   const endSec = rawEnd ? timeToSeconds(rawEnd) : totalDuration;
 
   if (startSec !== null && endSec !== null && endSec > startSec) {
     const diff = endSec - startSec;
-    badge.textContent = `✂ Selected Clip: ${formatSecondsToTime(diff)}`;
+    const estMb = ((diff / totalDuration) * 15.0).toFixed(1);
+    badge.textContent = `✂ Selected Clip: ${formatSecondsToTime(diff)} | 📦 Saved Size: ~${estMb > 0.1 ? estMb : '0.5'} MB`;
     badge.style.background = 'rgba(6, 182, 212, 0.2)';
     badge.style.borderColor = 'rgba(6, 182, 212, 0.4)';
     badge.style.color = '#06b6d4';
@@ -2323,6 +2321,8 @@ function renderVideoFormats(options) {
     return;
   }
 
+  const totalDur = (currentVideoData && currentVideoData.duration_sec) ? currentVideoData.duration_sec : 180;
+
   options.forEach((opt) => {
     const card = document.createElement('div');
     card.className = 'glass-card';
@@ -2336,6 +2336,19 @@ function renderVideoFormats(options) {
 
     const qualityLabel = opt.quality || '720p';
     const resText = opt.resolution || `${qualityLabel} HD`;
+    const hVal = parseInt(qualityLabel.replace('p', '')) || 720;
+    
+    let estSizeStr = opt.filesize_str;
+    if (!estSizeStr || estSizeStr.includes('Original') || estSizeStr.includes('Stream')) {
+      let mbPerSec = 0.31;
+      if (hVal >= 2160) mbPerSec = 1.875;
+      else if (hVal >= 1440) mbPerSec = 1.0;
+      else if (hVal >= 1080) mbPerSec = 0.56;
+      else if (hVal >= 720) mbPerSec = 0.31;
+      else if (hVal >= 480) mbPerSec = 0.15;
+      else mbPerSec = 0.087;
+      estSizeStr = `${(mbPerSec * totalDur).toFixed(1)} MB`;
+    }
 
     card.innerHTML = `
       <div>
@@ -2343,7 +2356,10 @@ function renderVideoFormats(options) {
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff3366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 8 6 4-6 4Z"/></svg>
           ${resText}
         </div>
-        <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.25rem;">Format: MP4 • Size: ${opt.filesize_str || 'Original Quality'}</div>
+        <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>Format: MP4</span>
+          <span style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; padding: 0.1rem 0.5rem; border-radius: 0.3rem; font-weight: 600; font-size: 0.78rem;">💾 Size: ${estSizeStr}</span>
+        </div>
       </div>
       <button class="sv-btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 99px; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.3);">
         Download Video
@@ -2366,6 +2382,8 @@ function renderAudioFormats(options) {
     options = [{ format_id: 'bestaudio/best', quality: '320 kbps', filesize_str: 'High Quality MP3' }];
   }
 
+  const totalDur = (currentVideoData && currentVideoData.duration_sec) ? currentVideoData.duration_sec : 180;
+
   options.forEach((opt) => {
     const card = document.createElement('div');
     card.className = 'glass-card';
@@ -2378,6 +2396,10 @@ function renderAudioFormats(options) {
     card.style.borderRadius = '0.85rem';
 
     const qualityLabel = opt.quality || '320 kbps';
+    let estAudioSize = opt.filesize_str;
+    if (!estAudioSize || estAudioSize.includes('Auto') || estAudioSize.includes('High Quality')) {
+      estAudioSize = `${(0.04 * totalDur).toFixed(1)} MB`;
+    }
 
     card.innerHTML = `
       <div>
@@ -2385,7 +2407,10 @@ function renderAudioFormats(options) {
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
           MP3 Audio (${qualityLabel})
         </div>
-        <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.25rem;">Format: MP3 Lossless • Size: ${opt.filesize_str || 'Auto'}</div>
+        <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>Format: MP3 Audio</span>
+          <span style="background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(6, 182, 212, 0.4); color: #06b6d4; padding: 0.1rem 0.5rem; border-radius: 0.3rem; font-weight: 600; font-size: 0.78rem;">🎵 Size: ${estAudioSize}</span>
+        </div>
       </div>
       <button class="sv-btn-primary" style="background: linear-gradient(135deg, #06b6d4 0%, #0284c7 100%) !important; padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 99px; box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);">
         Download MP3
