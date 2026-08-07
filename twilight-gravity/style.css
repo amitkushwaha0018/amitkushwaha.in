@@ -901,9 +901,8 @@ button {
     font-weight: 600;
     display: block;
     margin-bottom: 0.8rem;
-    opacity: 0;
-    transform: translateY(30px);
-    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.2s;
+    opacity: 1 !important;
+    transform: none !important;
 }
 
 .hero h1,
@@ -914,9 +913,8 @@ button {
     letter-spacing: -0.03em;
     margin-bottom: 0.8rem;
     color: var(--text-primary);
-    opacity: 0;
-    transform: translateY(30px);
-    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.3s;
+    opacity: 1 !important;
+    transform: none !important;
 }
 
 .hero .role {
@@ -924,9 +922,8 @@ button {
     color: var(--text-secondary);
     font-weight: 400;
     margin-bottom: 1.5rem;
-    opacity: 0;
-    transform: translateY(30px);
-    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.4s;
+    opacity: 1 !important;
+    transform: none !important;
 }
 
 .role-highlight {
@@ -948,9 +945,8 @@ button {
     color: var(--text-secondary);
     max-width: 500px;
     margin-bottom: 2rem;
-    opacity: 0;
-    transform: translateY(30px);
-    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.5s;
+    opacity: 1 !important;
+    transform: none !important;
 }
 
 /* Hero Dual CTA Buttons */
@@ -959,9 +955,8 @@ button {
     align-items: center;
     gap: 1.2rem;
     margin-top: 2rem;
-    opacity: 0;
-    transform: translateY(30px);
-    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.6s;
+    opacity: 1 !important;
+    transform: none !important;
 }
 
 .hero-btn {
