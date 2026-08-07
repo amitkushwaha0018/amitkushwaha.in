@@ -1,20 +1,18 @@
+// Top-level instant preloader removal - runs immediately upon script load
+(function killPreloaderNow() {
+  const p = document.getElementById('preloader');
+  if (p) {
+    p.style.opacity = '0';
+    p.style.display = 'none';
+  }
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
     // 0. Preloader Failsafe Logic — Ensures website always opens instantly
     const preloader = document.getElementById('preloader');
     if (preloader) {
-        const removePreloader = () => {
-            preloader.classList.add('fade-out');
-            setTimeout(() => {
-                preloader.style.display = 'none';
-            }, 400);
-        };
-
-        if (document.readyState === 'complete') {
-            removePreloader();
-        } else {
-            window.addEventListener('load', removePreloader, { once: true });
-            setTimeout(removePreloader, 1000); // 1-second failsafe guarantee
-        }
+        preloader.style.opacity = '0';
+        preloader.style.display = 'none';
     }
 
     // Clean Subdirectory URL Path Routing for Mobile & Desktop (/home, /experience, /youtube, /ytdownloader, /streamvault, /contact, /stats, /feedback)
