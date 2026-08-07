@@ -521,11 +521,16 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                 target_out = os.path.join(temp_dir, f"media.{'mp3' if media_type == 'audio' else 'mp4'}")
 
                 try:
-                    if YouTube is not None:
-                        yt_obj = None
-                        for c_name in ['MWEB', 'TV_EMBEDDED', 'WEB', 'IOS']:
+                    yt_obj = None
+                    try:
+                        from pytubefix import YouTube as YT_Class
+                    except Exception:
+                        YT_Class = YouTube
+
+                    if YT_Class is not None:
+                        for c_name in ['MWEB', 'ANDROID', 'WEB', 'IOS']:
                             try:
-                                yt_obj = YouTube(url, client=c_name)
+                                yt_obj = YT_Class(url, client=c_name)
                                 if yt_obj and yt_obj.streams:
                                     break
                             except Exception:
@@ -709,36 +714,41 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                             last_dl_err = e_dl
                 if not download_success:
                     try:
-                        if YouTube is not None:
-                            yt_obj = None
-                        for c_name in ['MWEB', 'TV_EMBEDDED', 'WEB', 'IOS']:
-                            try:
-                                yt_obj = YouTube(url, client=c_name)
-                                if yt_obj and yt_obj.streams:
-                                    break
-                            except Exception as e_c:
-                                last_dl_err = f"PyTubeFix client {c_name}: {e_c}"
-                                continue
+                        yt_obj = None
+                        try:
+                            from pytubefix import YouTube as YT_Class
+                        except Exception:
+                            YT_Class = YouTube
 
-                        if yt_obj:
-                            stream = None
-                            out_ext = 'mp3' if media_type == 'audio' else 'mp4'
-                            if media_type == 'audio':
-                                stream = yt_obj.streams.filter(only_audio=True).first() or yt_obj.streams.filter(progressive=True).first()
-                            else:
-                                height_match = re.search(r'(\d+)p', quality_param)
-                                target_h = height_match.group(1) if height_match else ''
-                                if target_h:
-                                    stream = yt_obj.streams.filter(res=f"{target_h}p", progressive=True).first()
-                                if not stream:
-                                    stream = yt_obj.streams.get_highest_resolution() or yt_obj.streams.filter(progressive=True).first()
+                        if YT_Class is not None:
+                            for c_name in ['MWEB', 'ANDROID', 'WEB', 'IOS']:
+                                try:
+                                    yt_obj = YT_Class(url, client=c_name)
+                                    if yt_obj and yt_obj.streams:
+                                        break
+                                except Exception as e_c:
+                                    last_dl_err = f"PyTubeFix client {c_name}: {e_c}"
+                                    continue
 
-                            if stream:
-                                target_filename = f"{safe_title}.{out_ext}"
-                                stream.download(output_path=temp_dir, filename=target_filename)
-                                target_pytube = os.path.join(temp_dir, target_filename)
-                                if os.path.exists(target_pytube) and os.path.getsize(target_pytube) > 0:
-                                    download_success = True
+                            if yt_obj:
+                                stream = None
+                                out_ext = 'mp3' if media_type == 'audio' else 'mp4'
+                                if media_type == 'audio':
+                                    stream = yt_obj.streams.filter(only_audio=True).first() or yt_obj.streams.filter(progressive=True).first()
+                                else:
+                                    height_match = re.search(r'(\d+)p', quality_param)
+                                    target_h = height_match.group(1) if height_match else ''
+                                    if target_h:
+                                        stream = yt_obj.streams.filter(res=f"{target_h}p", progressive=True).first()
+                                    if not stream:
+                                        stream = yt_obj.streams.get_highest_resolution() or yt_obj.streams.filter(progressive=True).first()
+
+                                if stream:
+                                    target_filename = f"{safe_title}.{out_ext}"
+                                    stream.download(output_path=temp_dir, filename=target_filename)
+                                    target_pytube = os.path.join(temp_dir, target_filename)
+                                    if os.path.exists(target_pytube) and os.path.getsize(target_pytube) > 0:
+                                        download_success = True
                     except Exception as e_pt:
                         last_dl_err = f"PyTubeFix error: {e_pt}"
                         print(f"PyTubeFix fallback error: {e_pt}")
