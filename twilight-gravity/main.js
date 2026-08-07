@@ -2548,56 +2548,19 @@ async function startDownload(formatId, mediaType, quality, streamUrl = null) {
   }, 250);
 
   try {
-    const controller = new AbortController();
-    // 8-minute timeout for large video downloads (Render free tier can be slow)
-    const timeoutId = setTimeout(() => controller.abort(), 8 * 60 * 1000);
-    let res;
-    try {
-      res = await fetch(downloadUrl, { signal: controller.signal });
-      clearTimeout(timeoutId);
-    } catch (fetchErr) {
-      clearTimeout(timeoutId);
-      if (fetchErr.name === 'AbortError') {
-        throw new Error('Download timed out. Server may be busy — please try again in a moment.');
-      }
-      throw fetchErr;
-    }
-    if (!res.ok) {
-      let errMsg = `Server error (Status ${res.status})`;
-      try {
-        const errData = await res.json();
-        if (errData && errData.error) errMsg = errData.error;
-      } catch (e) {}
-      throw new Error(errMsg);
-    }
-
-    const blob = await res.blob();
-    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.target = '_blank';
+    link.setAttribute('download', `${currentVideoData.title}.${mediaType === 'audio' ? 'mp3' : 'mp4'}`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
     isDone = true;
     clearInterval(pollInterval);
-
-    const disposition = res.headers.get('Content-Disposition');
-    let filename = `${currentVideoData.title}.${mediaType === 'audio' ? 'mp3' : 'mp4'}`;
-    if (disposition && disposition.includes('filename=')) {
-      filename = disposition.split('filename=')[1].replace(/["']/g, '');
-    }
-
-    const saveLinkHtml = `<a href="${blobUrl}" download="${filename.replace(/"/g, '')}" style="color: #4ade80; text-decoration: underline; font-weight: 700; margin-left: 0.4rem;">💾 Click Here to Save File</a>`;
-    if (statusText) statusText.innerHTML = `✅ Download Complete! ${saveLinkHtml}`;
-    if (fillBar) fillBar.style.width = '100%';
-    if (percentText) percentText.textContent = '100%';
-
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = filename;
-    document.body.appendChild(link);
-    try { link.click(); } catch(e) {}
-    document.body.removeChild(link);
-
-    setTimeout(() => {
-      window.URL.revokeObjectURL(blobUrl);
-    }, 60000);
+    updateUI(100, `🚀 Download Started! Saving file directly to your device.`);
+    if (statusText) statusText.innerHTML = `✅ Download Started! If download didn't start automatically, <a href="${downloadUrl}" download style="color: #4ade80; text-decoration: underline; font-weight: 700;">Click Here to Direct Save</a>.`;
+  }
 
   } catch (err) {
     isDone = true;
