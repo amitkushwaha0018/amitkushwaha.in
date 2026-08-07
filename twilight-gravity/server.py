@@ -550,6 +550,22 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                 if not stream:
                                     stream = yt_obj.streams.get_highest_resolution() or yt_obj.streams.filter(progressive=True).first()
 
+                            if stream and stream.url and not is_trimmed:
+                                out_mime = 'audio/mpeg' if media_type == 'audio' else 'video/mp4'
+                                out_ext = 'mp3' if media_type == 'audio' else 'mp4'
+                                try:
+                                    req_st = urllib.request.Request(stream.url, headers={'User-Agent': 'Mozilla/5.0'})
+                                    with urllib.request.urlopen(req_st, timeout=40) as r_in:
+                                        self.send_response(200)
+                                        self.send_header('Content-Type', out_mime)
+                                        self.send_header('Content-Disposition', f'attachment; filename="{safe_title}.{out_ext}"')
+                                        self.send_header('Access-Control-Allow-Origin', '*')
+                                        self.end_headers()
+                                        shutil.copyfileobj(r_in, self.wfile)
+                                        return
+                                except Exception as e_st:
+                                    print(f"Direct stream proxy error: {e_st}")
+
                             if stream:
                                 target_filename = f"{safe_title}.{out_ext}"
                                 stream.download(output_path=temp_dir, filename=target_filename)
