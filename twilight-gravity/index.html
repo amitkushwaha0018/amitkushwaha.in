@@ -107,6 +107,23 @@
     <div id="preloader">
         <div class="loader-circle"></div>
     </div>
+    <script>
+        (function() {
+            var p = document.getElementById('preloader');
+            if (p) {
+                var hideP = function() {
+                    p.style.opacity = '0';
+                    p.style.transition = 'opacity 0.3s ease';
+                    setTimeout(function() { p.style.display = 'none'; }, 300);
+                };
+                if (document.readyState === 'complete') hideP();
+                else {
+                    window.addEventListener('load', hideP);
+                    setTimeout(hideP, 500); // Instant 500ms failsafe
+                }
+            }
+        })();
+    </script>
 
     <!-- Navigation -->
     <nav class="navbar hidden-onload" id="navbar">
