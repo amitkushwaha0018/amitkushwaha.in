@@ -1,3 +1,10 @@
+#preloader {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
 :root {
     /* Shared Variables */
     --font-main: 'Outfit', sans-serif;
