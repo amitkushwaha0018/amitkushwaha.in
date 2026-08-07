@@ -103,11 +103,24 @@
     <!-- Custom Animated Cursor -->
     <div class="custom-cursor" id="custom-cursor"></div>
 
-    <!-- Preloader Disabled for Instant Deployment Load -->
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="loader-circle"></div>
+    </div>
     <script>
         (function() {
             var p = document.getElementById('preloader');
-            if (p) p.style.display = 'none';
+            if (p) {
+                var hideP = function() {
+                    p.classList.add('fade-out');
+                    setTimeout(function() { p.style.display = 'none'; }, 400);
+                };
+                if (document.readyState === 'complete') hideP();
+                else {
+                    window.addEventListener('load', hideP);
+                    setTimeout(hideP, 500); // Smooth 500ms auto fade-out
+                }
+            }
         })();
     </script>
 
