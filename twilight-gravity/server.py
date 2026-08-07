@@ -247,50 +247,7 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                         continue
 
                 if not info:
-                    print(f"yt-dlp info exception, using oEmbed fallback engine: {last_err}")
-                    video_id_match = re.search(r'(?:v=|\/|be\/)([a-zA-Z0-9_-]{11})', url)
-                    vid_id = video_id_match.group(1) if video_id_match else ''
-                    
-                    oembed_title = 'YouTube Video'
-                    oembed_channel = 'YouTube Channel'
-                    oembed_thumb = f"https://i.ytimg.com/vi/{vid_id}/hqdefault.jpg" if vid_id else ""
-                    
-                    if vid_id:
-                        try:
-                            oembed_url = f"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={vid_id}&format=json"
-                            req_oe = urllib.request.Request(oembed_url, headers={'User-Agent': 'Mozilla/5.0'})
-                            with urllib.request.urlopen(req_oe, timeout=5) as r_oe:
-                                oe_data = json.loads(r_oe.read())
-                                oembed_title = oe_data.get('title', oembed_title)
-                                oembed_channel = oe_data.get('author_name', oembed_channel)
-                                oembed_thumb = oe_data.get('thumbnail_url', oembed_thumb)
-                        except Exception as e_oe:
-                            print(f"oEmbed fetch warning: {e_oe}")
-
-                    std_video_options = [
-                        {'format_id': 'bestvideo[height<=2160]+bestaudio/best[height<=2160]/best', 'quality': '2160p', 'resolution': '2160p 4K Ultra HD (Original)', 'ext': 'mp4', 'filesize_str': '112.5 MB', 'fps': 60, 'has_audio': True},
-                        {'format_id': 'bestvideo[height<=1440]+bestaudio/best[height<=1440]/best', 'quality': '1440p', 'resolution': '1440p 2K QHD (Original)', 'ext': 'mp4', 'filesize_str': '60.0 MB', 'fps': 60, 'has_audio': True},
-                        {'format_id': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]/best', 'quality': '1080p', 'resolution': '1080p Full HD (Original)', 'ext': 'mp4', 'filesize_str': '33.7 MB', 'fps': 60, 'has_audio': True},
-                        {'format_id': 'bestvideo[height<=720]+bestaudio/best[height<=720]/best', 'quality': '720p', 'resolution': '720p HD (Original)', 'ext': 'mp4', 'filesize_str': '18.5 MB', 'fps': 30, 'has_audio': True},
-                        {'format_id': 'bestvideo[height<=480]+bestaudio/best[height<=480]/best', 'quality': '480p', 'resolution': '480p SD (Original)', 'ext': 'mp4', 'filesize_str': '9.0 MB', 'fps': 30, 'has_audio': True},
-                        {'format_id': 'bestvideo[height<=360]+bestaudio/best[height<=360]/best', 'quality': '360p', 'resolution': '360p Mobile (Original)', 'ext': 'mp4', 'filesize_str': '5.2 MB', 'fps': 30, 'has_audio': True}
-                    ]
-                    std_audio_options = [
-                        {'format_id': 'bestaudio/best', 'quality': '320 kbps', 'resolution': 'MP3 Audio (320 kbps)', 'ext': 'mp3', 'filesize_str': '4.2 MB', 'bitrate': 320}
-                    ]
-
-                    self._send_json({
-                        'id': vid_id,
-                        'title': oembed_title,
-                        'thumbnail': oembed_thumb,
-                        'duration': '03:45',
-                        'duration_sec': 225,
-                        'channel': oembed_channel,
-                        'view_count': 1000,
-                        'video_options': std_video_options,
-                        'audio_options': std_audio_options
-                    })
-                    return
+                    print(f"yt-dlp info exception, using flat_info / fallback engine: {last_err}")
 
                 if info:
                     if 'entries' in info: info = info['entries'][0]
@@ -592,22 +549,6 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
                                     stream = yt_obj.streams.filter(res=f"{target_h}p", progressive=True).first()
                                 if not stream:
                                     stream = yt_obj.streams.get_highest_resolution() or yt_obj.streams.filter(progressive=True).first()
-
-                            if stream and stream.url and not is_trimmed:
-                                out_mime = 'audio/mpeg' if media_type == 'audio' else 'video/mp4'
-                                out_ext = 'mp3' if media_type == 'audio' else 'mp4'
-                                try:
-                                    req_st = urllib.request.Request(stream.url, headers={'User-Agent': 'Mozilla/5.0'})
-                                    with urllib.request.urlopen(req_st, timeout=40) as r_in:
-                                        self.send_response(200)
-                                        self.send_header('Content-Type', out_mime)
-                                        self.send_header('Content-Disposition', f'attachment; filename="{safe_title}.{out_ext}"')
-                                        self.send_header('Access-Control-Allow-Origin', '*')
-                                        self.end_headers()
-                                        shutil.copyfileobj(r_in, self.wfile)
-                                        return
-                                except Exception as e_st:
-                                    print(f"Direct stream proxy error: {e_st}")
 
                             if stream:
                                 target_filename = f"{safe_title}.{out_ext}"
