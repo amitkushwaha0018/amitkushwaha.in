@@ -901,8 +901,9 @@ button {
     font-weight: 600;
     display: block;
     margin-bottom: 0.8rem;
-    opacity: 1 !important;
-    transform: none !important;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.2s;
 }
 
 .hero h1,
@@ -913,8 +914,9 @@ button {
     letter-spacing: -0.03em;
     margin-bottom: 0.8rem;
     color: var(--text-primary);
-    opacity: 1 !important;
-    transform: none !important;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.3s;
 }
 
 .hero .role {
@@ -922,8 +924,9 @@ button {
     color: var(--text-secondary);
     font-weight: 400;
     margin-bottom: 1.5rem;
-    opacity: 1 !important;
-    transform: none !important;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.4s;
 }
 
 .role-highlight {
@@ -945,8 +948,9 @@ button {
     color: var(--text-secondary);
     max-width: 500px;
     margin-bottom: 2rem;
-    opacity: 1 !important;
-    transform: none !important;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.5s;
 }
 
 /* Hero Dual CTA Buttons */
@@ -955,8 +959,9 @@ button {
     align-items: center;
     gap: 1.2rem;
     margin-top: 2rem;
-    opacity: 1 !important;
-    transform: none !important;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: royalSlideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.6s;
 }
 
 .hero-btn {
@@ -1945,14 +1950,9 @@ footer {
     font-size: 0.9rem;
 }
 
-/* Animations & Visibility Failsafes */
+/* Animations */
 .hidden {
-    display: none !important;
-}
-
-section, .hero, .timeline-item, .section-title, .navbar {
-    opacity: 1 !important;
-    visibility: visible !important;
+    opacity: 0;
 }
 
 .hidden-onload {
@@ -2032,12 +2032,44 @@ section, .hero, .timeline-item, .section-title, .navbar {
     }
 }
 
-/* Preloader (Disabled for Instant 0ms Page Load) */
+/* Preloader */
 #preloader {
-    display: none !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: var(--bg-color);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+#preloader.fade-out {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loader-circle {
+    width: 50px;
+    height: 50px;
+    border: 3px solid var(--glass-border);
+    border-top: 3px solid var(--accent-color);
+    border-right: 3px solid var(--accent-secondary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Scroll to Top Button */
